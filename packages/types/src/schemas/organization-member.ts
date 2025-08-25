@@ -5,10 +5,10 @@ export const OrganizationMemberStatusEnum = z.enum(['ACTIVE', 'INACTIVE', 'PENDI
 
 // Base organization member schema
 export const OrganizationMemberSchema = z.object({
-  id: z.string().uuid(),
+  id: z.number().int().positive(),
   uuid: z.string().uuid(),
-  organization_id: z.string().uuid(),
-  user_id: z.string().uuid(),
+  organization_id: z.number().int().positive(),
+  user_id: z.number().int().positive(),
   title: z.string().optional(),
   notes: z.string().optional(),
   status: OrganizationMemberStatusEnum,
@@ -22,8 +22,8 @@ export const OrganizationMemberSchema = z.object({
 
 // Schema for creating a new organization member
 export const CreateOrganizationMemberSchema = z.object({
-  organization_id: z.string().uuid('Invalid organization ID'),
-  user_id: z.string().uuid('Invalid user ID'),
+  organization_id: z.number().int().positive('Invalid organization ID'),
+  user_id: z.number().int().positive('Invalid user ID'),
   title: z.string().optional(),
   notes: z.string().optional(),
   status: OrganizationMemberStatusEnum.optional().default('ACTIVE'),
@@ -43,7 +43,7 @@ export const UpdateOrganizationMemberSchema = z.object({
 
 // Schema for inviting a member to an organization
 export const InviteMemberSchema = z.object({
-  organization_id: z.string().uuid('Invalid organization ID'),
+  organization_id: z.number().int().positive('Invalid organization ID'),
   email: z.string().email('Invalid email format'),
   title: z.string().optional(),
   is_admin: z.boolean().optional().default(false)

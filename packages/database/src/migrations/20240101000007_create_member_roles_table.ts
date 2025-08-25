@@ -2,11 +2,11 @@ import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('member_roles', (table) => {
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
+    table.bigIncrements('id').primary();
     table.uuid('uuid').unique().defaultTo(knex.raw('gen_random_uuid()'));
     
     // Foreign keys
-    table.uuid('organization_member_id').notNullable().references('id').inTable('organization_members').onDelete('CASCADE');
+    table.bigInteger('organization_member_id').unsigned().notNullable().references('id').inTable('organization_members').onDelete('CASCADE');
     
     // Role details
     table.string('role_name').notNullable(); // e.g., 'ORDER_MANAGER', 'DRIVER', 'ADMIN', 'VIEWER'

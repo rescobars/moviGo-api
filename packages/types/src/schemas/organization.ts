@@ -8,7 +8,7 @@ export const PlanTypeEnum = z.enum(['FREE', 'BASIC', 'PRO', 'ENTERPRISE']);
 
 // Base organization schema
 export const OrganizationSchema = z.object({
-  id: z.string().uuid(),
+  id: z.number().int().positive(),
   uuid: z.string().uuid(),
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),

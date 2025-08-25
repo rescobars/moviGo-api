@@ -2,9 +2,9 @@ import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('auth_tokens', (table) => {
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
+    table.bigIncrements('id').primary();
     table.uuid('uuid').unique().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('user_id').references('id').inTable('users').onDelete('CASCADE');
+    table.bigInteger('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE');
     table.string('token').notNullable().unique();
     table.enum('type', ['EMAIL_VERIFICATION', 'PASSWORDLESS_LOGIN', 'PASSWORD_RESET']).notNullable();
     table.enum('status', ['PENDING', 'USED', 'EXPIRED']).defaultTo('PENDING');

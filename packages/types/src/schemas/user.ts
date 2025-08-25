@@ -5,7 +5,7 @@ export const UserStatusEnum = z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']);
 
 // Base user schema
 export const UserSchema = z.object({
-  id: z.string().uuid(),
+  id: z.number().int().positive(),
   uuid: z.string().uuid(),
   email: z.string().email(),
   name: z.string().min(1, 'Name is required'),

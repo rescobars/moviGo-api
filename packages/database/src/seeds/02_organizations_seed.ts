@@ -1,0 +1,74 @@
+import { Knex } from 'knex';
+
+export async function seed(knex: Knex): Promise<void> {
+  // Deletes ALL existing entries
+  await knex('organizations').del();
+
+  // Inserts seed entries
+  await knex('organizations').insert([
+    {
+      id: 1,
+      uuid: '550e8400-e29b-41d4-a716-446655440011',
+      name: 'Restaurante El Buen Sabor',
+      description: 'Restaurante de comida tradicional con delivery',
+      domain: 'elbuensabor.com',
+      logo_url: 'https://example.com/logos/elbuensabor.png',
+      website_url: 'https://elbuensabor.com',
+      contact_email: 'contacto@elbuensabor.com',
+      contact_phone: '+502 1234-5678',
+      address: 'Avenida Reforma 10-25, Zona 10, Ciudad de Guatemala',
+      status: 'ACTIVE',
+      is_active: true,
+      plan_type: 'PRO',
+      subscription_expires_at: new Date('2025-12-31'),
+    },
+    {
+      id: 2,
+      uuid: '550e8400-e29b-41d4-a716-446655440021',
+      name: 'Pizza Express',
+      description: 'Pizzería con delivery rápido y eficiente',
+      domain: 'pizzaexpress.gt',
+      logo_url: 'https://example.com/logos/pizzaexpress.png',
+      website_url: 'https://pizzaexpress.gt',
+      contact_email: 'info@pizzaexpress.gt',
+      contact_phone: '+502 2345-6789',
+      address: 'Calle Principal 5-15, Zona 1, Ciudad de Guatemala',
+      status: 'ACTIVE',
+      is_active: true,
+      plan_type: 'BASIC',
+      subscription_expires_at: new Date('2025-06-30'),
+    },
+    {
+      id: 3,
+      uuid: '550e8400-e29b-41d4-a716-446655440031',
+      name: 'Café Central',
+      description: 'Café artesanal con servicio de delivery',
+      domain: 'cafecentral.gt',
+      logo_url: 'https://example.com/logos/cafecentral.png',
+      website_url: 'https://cafecentral.gt',
+      contact_email: 'hola@cafecentral.gt',
+      contact_phone: '+502 3456-7890',
+      address: 'Plaza Central 8-12, Zona 4, Ciudad de Guatemala',
+      status: 'ACTIVE',
+      is_active: true,
+      plan_type: 'FREE',
+      subscription_expires_at: new Date('2025-03-31'),
+    },
+    {
+      id: 4,
+      uuid: '550e8400-e29b-41d4-a716-446655440041',
+      name: 'Sushi Master',
+      description: 'Restaurante de sushi premium con delivery',
+      domain: 'sushimaster.gt',
+      logo_url: 'https://example.com/logos/sushimaster.png',
+      website_url: 'https://sushimaster.gt',
+      contact_email: 'reservas@sushimaster.gt',
+      contact_phone: '+502 4567-8901',
+      address: 'Centro Comercial Miraflores, Zona 11, Ciudad de Guatemala',
+      status: 'ACTIVE',
+      is_active: true,
+      plan_type: 'ENTERPRISE',
+      subscription_expires_at: new Date('2026-12-31'),
+    },
+  ]);
+}

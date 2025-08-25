@@ -11,7 +11,7 @@ export async function seed(knex: Knex): Promise<void> {
   // Inserts seed entries
   await knex('users').insert([
     {
-      id: '550e8400-e29b-41d4-a716-446655440000',
+      id: 1,
       uuid: '550e8400-e29b-41d4-a716-446655440002',
       email: 'admin@movigo.com',
       name: 'Admin User',
@@ -20,7 +20,7 @@ export async function seed(knex: Knex): Promise<void> {
       is_active: true,
     },
     {
-      id: '550e8400-e29b-41d4-a716-446655440001',
+      id: 2,
       uuid: '550e8400-e29b-41d4-a716-446655440003',
       email: 'user@movigo.com',
       name: 'Test User',

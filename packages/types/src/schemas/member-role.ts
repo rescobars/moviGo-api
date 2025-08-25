@@ -49,9 +49,9 @@ export const PermissionsSchema = z.object({
 
 // Base member role schema
 export const MemberRoleSchema = z.object({
-  id: z.string().uuid(),
+  id: z.number().int().positive(),
   uuid: z.string().uuid(),
-  organization_member_id: z.string().uuid(),
+  organization_member_id: z.number().int().positive(),
   role_name: z.string(),
   description: z.string().optional(),
   status: MemberRoleStatusEnum,
@@ -63,7 +63,7 @@ export const MemberRoleSchema = z.object({
 
 // Schema for creating a new member role
 export const CreateMemberRoleSchema = z.object({
-  organization_member_id: z.string().uuid('Invalid organization member ID'),
+  organization_member_id: z.number().int().positive('Invalid organization member ID'),
   role_name: z.string().min(1, 'Role name is required'),
   description: z.string().optional(),
   status: MemberRoleStatusEnum.optional().default('ACTIVE'),
@@ -81,7 +81,7 @@ export const UpdateMemberRoleSchema = z.object({
 
 // Schema for assigning multiple roles to a member
 export const AssignRolesSchema = z.object({
-  organization_member_id: z.string().uuid('Invalid organization member ID'),
+  organization_member_id: z.number().int().positive('Invalid organization member ID'),
   roles: z.array(z.object({
     role_name: z.string().min(1, 'Role name is required'),
     description: z.string().optional(),
