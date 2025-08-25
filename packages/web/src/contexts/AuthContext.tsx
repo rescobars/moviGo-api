@@ -82,10 +82,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (response.success) {
             // Token válido, restaurar sesión
             const user = response.data as User;
+            const sessionData = (response.data as any).session_data;
             dispatch({
               type: 'UPDATE_SESSION',
               payload: {
                 user,
+                sessionData,
                 accessToken,
                 refreshToken,
                 isAuthenticated: true,

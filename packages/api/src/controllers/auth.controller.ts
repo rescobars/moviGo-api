@@ -387,6 +387,9 @@ export class AuthController {
         });
       }
 
+      // Get session data with organizations and roles
+      const sessionData = await SessionService.getSessionData(userId);
+
       res.json({
         success: true,
         data: {
@@ -395,7 +398,8 @@ export class AuthController {
           email: user.email,
           name: user.name,
           status: user.status,
-          created_at: user.created_at
+          created_at: user.created_at,
+          session_data: sessionData
         }
       });
     } catch (error) {

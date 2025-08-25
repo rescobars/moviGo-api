@@ -18,23 +18,51 @@ import {
   BarChart3,
   TrendingUp,
   Package,
-  Truck
+  Truck,
+  Globe,
+  Phone,
+  MapPin
 } from 'lucide-react';
 import { apiService } from '@/lib/api';
 import { InviteMemberFormData } from '@/types';
 
+interface CreateOrganizationFormData {
+  name: string;
+  description: string;
+  domain: string;
+  contact_email: string;
+  contact_phone: string;
+  address: string;
+  website_url: string;
+}
+
 export default function DashboardPage() {
   const { user, sessionData, logout } = useAuth();
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [showCreateOrgForm, setShowCreateOrgForm] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
+  const [isCreatingOrg, setIsCreatingOrg] = useState(false);
   const [inviteError, setInviteError] = useState('');
   const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [orgError, setOrgError] = useState('');
+  const [orgSuccess, setOrgSuccess] = useState(false);
   
   const [formData, setFormData] = useState<InviteMemberFormData>({
     email: '',
     name: '',
     title: '',
-    roles: ['MANAGER']
+    roles: ['MANAGER'],
+    organization_id: undefined
+  });
+
+  const [orgFormData, setOrgFormData] = useState<CreateOrganizationFormData>({
+    name: '',
+    description: '',
+    domain: '',
+    contact_email: '',
+    contact_phone: '',
+    address: '',
+    website_url: ''
   });
 
   // Calculate user permissions
@@ -67,8 +95,8 @@ export default function DashboardPage() {
     setInviteSuccess(false);
 
     try {
-      // Use the first available organization or the selected one
-      const organizationId = availableOrganizations[0]?.id || 1;
+      // Use selected organization or the first available one
+      const organizationId = formData.organization_id || availableOrganizations[0]?.id || 1;
       
       const response = await apiService.inviteMember(
         {
@@ -80,7 +108,7 @@ export default function DashboardPage() {
 
       if (response.success) {
         setInviteSuccess(true);
-        setFormData({ email: '', name: '', title: '', roles: ['MANAGER'] });
+        setFormData({ email: '', name: '', title: '', roles: ['MANAGER'], organization_id: undefined });
         setShowInviteForm(false);
       } else {
         setInviteError(response.error || 'Error al invitar miembro');
@@ -89,6 +117,39 @@ export default function DashboardPage() {
       setInviteError(error instanceof Error ? error.message : 'Error al invitar miembro');
     } finally {
       setIsInviting(false);
+    }
+  };
+
+  const handleCreateOrgSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsCreatingOrg(true);
+    setOrgError('');
+    setOrgSuccess(false);
+
+    try {
+      // const response = await apiService.createOrganization(orgFormData);
+      
+      // if (response.success) {
+      //   setOrgSuccess(true);
+      //   setOrgFormData({
+      //     name: '',
+      //     description: '',
+      //     domain: '',
+      //     contact_email: '',
+      //     contact_phone: '',
+      //     address: '',
+      //     website_url: ''
+      //   });
+      //   setShowCreateOrgForm(false);
+      //   // Refresh the page to show the new organization
+      //   window.location.reload();
+      // } else {
+      //   setOrgError(response.error || 'Error al crear organización');
+      // }
+    } catch (error) {
+      setOrgError(error instanceof Error ? error.message : 'Error al crear organización');
+    } finally {
+      setIsCreatingOrg(false);
     }
   };
 
@@ -173,6 +234,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 className="hidden md:flex"
+                onClick={() => setShowCreateOrgForm(true)}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Crear Organización
@@ -243,7 +305,7 @@ export default function DashboardPage() {
               {userPermissions.canCreateOrganizations && (
                 <Button
                   variant="outline"
-                  onClick={() => setShowInviteForm(true)}
+                  onClick={() => setShowCreateOrgForm(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Crear Organización
@@ -254,7 +316,116 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Invite Member Form */}
+      {/* Create Organization Modal */}
+      {showCreateOrgForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Building2 className="w-5 h-5 text-primary-600 mr-2" />
+                Crear Nueva Organización
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreateOrgSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="Nombre de la Organización"
+                    type="text"
+                    placeholder="Mi Restaurante"
+                    value={orgFormData.name}
+                    onChange={(e) => setOrgFormData({ ...orgFormData, name: e.target.value })}
+                    required
+                  />
+                  <Input
+                    label="Dominio"
+                    type="text"
+                    placeholder="mirestaurante.com"
+                    value={orgFormData.domain}
+                    onChange={(e) => setOrgFormData({ ...orgFormData, domain: e.target.value })}
+                  />
+                </div>
+                
+                <Input
+                  label="Descripción"
+                  type="text"
+                  placeholder="Descripción de la organización"
+                  value={orgFormData.description}
+                  onChange={(e) => setOrgFormData({ ...orgFormData, description: e.target.value })}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="Email de Contacto"
+                    type="email"
+                    placeholder="contacto@organizacion.com"
+                    value={orgFormData.contact_email}
+                    onChange={(e) => setOrgFormData({ ...orgFormData, contact_email: e.target.value })}
+                  />
+                  <Input
+                    label="Teléfono"
+                    type="tel"
+                    placeholder="+502 1234-5678"
+                    value={orgFormData.contact_phone}
+                    onChange={(e) => setOrgFormData({ ...orgFormData, contact_phone: e.target.value })}
+                  />
+                </div>
+
+                <Input
+                  label="Sitio Web"
+                  type="url"
+                  placeholder="https://organizacion.com"
+                  value={orgFormData.website_url}
+                  onChange={(e) => setOrgFormData({ ...orgFormData, website_url: e.target.value })}
+                />
+
+                <Input
+                  label="Dirección"
+                  type="text"
+                  placeholder="Dirección completa"
+                  value={orgFormData.address}
+                  onChange={(e) => setOrgFormData({ ...orgFormData, address: e.target.value })}
+                />
+                
+                {orgError && (
+                  <div className="flex items-center text-red-600 text-sm">
+                    <XCircle className="w-4 h-4 mr-2" />
+                    {orgError}
+                  </div>
+                )}
+                
+                {orgSuccess && (
+                  <div className="flex items-center text-green-600 text-sm">
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Organización creada exitosamente
+                  </div>
+                )}
+
+                <div className="flex space-x-3">
+                  <Button
+                    type="submit"
+                    loading={isCreatingOrg}
+                    disabled={!orgFormData.name}
+                    className="flex-1"
+                  >
+                    Crear Organización
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowCreateOrgForm(false)}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Invite Member Modal */}
       {showInviteForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -289,6 +460,48 @@ export default function DashboardPage() {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 />
+
+                {/* Organization Selector for Platform Admins */}
+                {userPermissions.canInviteToAnyOrganization && availableOrganizations.length > 1 && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Organización
+                    </label>
+                    <select
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={formData.organization_id || ''}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        organization_id: e.target.value ? parseInt(e.target.value) : undefined 
+                      })}
+                    >
+                      <option value="">Seleccionar organización</option>
+                      {availableOrganizations.map((org) => (
+                        <option key={org.id} value={org.id}>
+                          {org.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Role Selector */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Rol
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={formData.roles[0]}
+                    onChange={(e) => setFormData({ ...formData, roles: [e.target.value] })}
+                  >
+                    <option value="MANAGER">Gerente</option>
+                    <option value="ORDER_MANAGER">Gestor de Pedidos</option>
+                    <option value="DRIVER">Conductor</option>
+                    <option value="CUSTOMER_SERVICE">Servicio al Cliente</option>
+                    <option value="MEMBER">Miembro</option>
+                  </select>
+                </div>
                 
                 {inviteError && (
                   <div className="flex items-center text-red-600 text-sm">

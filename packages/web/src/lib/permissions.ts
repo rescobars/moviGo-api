@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'OWNER' | 'MANAGER' | 'MEMBER';
+export type UserRole = 'ADMIN' | 'OWNER' | 'MANAGER' | 'MEMBER' | 'PLATFORM_ADMIN' | 'SUPER_ADMIN' | 'PLATFORM_MANAGER';
 
 export interface UserPermissions {
   canInviteToAnyOrganization: boolean;
@@ -29,9 +29,13 @@ export function getUserPermissions(
   userOrganizations: Organization[],
   currentUserId: number
 ): UserPermissions {
-  const isAdmin = userRoles.includes('ADMIN');
+  // Check for admin roles (including platform admins)
+  const isAdmin = userRoles.includes('ADMIN') || 
+                  userRoles.includes('PLATFORM_ADMIN') || 
+                  userRoles.includes('SUPER_ADMIN');
+  
   const isOwner = userOrganizations.some(org => org.owner_id === currentUserId);
-  const hasManagerRole = userRoles.includes('MANAGER');
+  const hasManagerRole = userRoles.includes('MANAGER') || userRoles.includes('PLATFORM_MANAGER');
 
   return {
     // Admin can invite to any organization and create new ones
