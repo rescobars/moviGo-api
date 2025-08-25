@@ -16,19 +16,35 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
 
+  // Función para validar email
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.trim());
+  };
+
+  // Verificar si el botón debe estar habilitado
+  const isButtonEnabled = email.trim().length > 0 && isValidEmail(email);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!isButtonEnabled) return;
+    
     setIsLoading(true);
     setError('');
 
     try {
-      await login(email);
+      await login(email.trim());
       setIsEmailSent(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    setError(''); // Limpiar errores cuando el usuario empiece a escribir
   };
 
   if (isEmailSent) {
@@ -83,14 +99,14 @@ export default function LoginPage() {
               type="email"
               placeholder="tu@email.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               required
               error={error}
             />
             <Button
               type="submit"
               loading={isLoading}
-              disabled={!email}
+              disabled={!isButtonEnabled}
               className="w-full"
             >
               Continuar

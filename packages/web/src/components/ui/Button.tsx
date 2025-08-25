@@ -42,6 +42,11 @@ export function Button({
         className
       )}
       disabled={disabled || loading}
+      style={{
+        opacity: (disabled || loading) ? 0.5 : 1,
+        cursor: (disabled || loading) ? 'not-allowed' : 'pointer',
+        pointerEvents: (disabled || loading) ? 'none' : 'auto'
+      }}
       {...props}
     >
       {loading && (
