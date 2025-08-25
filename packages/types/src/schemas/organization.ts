@@ -11,6 +11,7 @@ export const OrganizationSchema = z.object({
   id: z.number().int().positive(),
   uuid: z.string().uuid(),
   name: z.string().min(1, 'Name is required'),
+  slug: z.string().min(1, 'Slug is required'),
   description: z.string().optional(),
   domain: z.string().optional(),
   logo_url: z.string().url().optional(),
@@ -29,6 +30,7 @@ export const OrganizationSchema = z.object({
 // Schema for creating a new organization
 export const CreateOrganizationSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+  slug: z.string().min(1, 'Slug is required').max(100, 'Slug too long'),
   description: z.string().optional(),
   domain: z.string().optional(),
   logo_url: z.string().url().optional(),
@@ -43,6 +45,7 @@ export const CreateOrganizationSchema = z.object({
 // Schema for updating an organization
 export const UpdateOrganizationSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name too long').optional(),
+  slug: z.string().min(1, 'Slug is required').max(100, 'Slug too long').optional(),
   description: z.string().optional(),
   domain: z.string().optional(),
   logo_url: z.string().url().optional(),

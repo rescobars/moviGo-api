@@ -132,13 +132,9 @@ export class AuthController {
         success: true,
         message: 'Login successful',
         data: {
-          user: {
-            id: user.id,
-            uuid: user.uuid,
-            email: user.email,
-            name: user.name,
-            status: user.status
-          },
+          user: session.user,
+          organizations: session.organizations,
+          default_organization: session.default_organization,
           access_token: session.accessToken,
           refresh_token: session.refreshToken,
           expires_in: session.expiresIn,
@@ -206,13 +202,9 @@ export class AuthController {
         success: true,
         message: 'Login successful',
         data: {
-          user: {
-            id: user.id,
-            uuid: user.uuid,
-            email: user.email,
-            name: user.name,
-            status: user.status
-          },
+          user: session.user,
+          organizations: session.organizations,
+          default_organization: session.default_organization,
           access_token: session.accessToken,
           refresh_token: session.refreshToken,
           expires_in: session.expiresIn,
@@ -287,13 +279,9 @@ export class AuthController {
         success: true,
         message: 'Login successful',
         data: {
-          user: {
-            id: user.id,
-            uuid: user.uuid,
-            email: user.email,
-            name: user.name,
-            status: user.status
-          },
+          user: session.user,
+          organizations: session.organizations,
+          default_organization: session.default_organization,
           access_token: session.accessToken,
           refresh_token: session.refreshToken,
           expires_in: session.expiresIn,

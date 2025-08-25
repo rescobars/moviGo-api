@@ -19,6 +19,64 @@ export class SessionService {
       userAgent?: string;
     } = {}
   ): Promise<{
+    user: {
+      uuid: string;
+      email: string;
+      name: string;
+      status: string;
+      created_at: Date;
+      updated_at: Date;
+    };
+    organizations: Array<{
+      uuid: string;
+      name: string;
+      slug: string;
+      description?: string;
+      domain?: string;
+      logo_url?: string;
+      website_url?: string;
+      contact_email?: string;
+      contact_phone?: string;
+      address?: string;
+      status: string;
+      plan_type: string;
+      subscription_expires_at?: Date;
+      roles: Array<{
+        uuid: string;
+        name: string;
+        description?: string;
+        permissions?: Record<string, any>;
+      }>;
+      permissions: Record<string, any>;
+      member_since: Date;
+      is_owner: boolean;
+      is_admin: boolean;
+    }>;
+    default_organization?: {
+      uuid: string;
+      name: string;
+      slug: string;
+      description?: string;
+      domain?: string;
+      logo_url?: string;
+      website_url?: string;
+      contact_email?: string;
+      contact_phone?: string;
+      address?: string;
+      status: string;
+      plan_type: string;
+      subscription_expires_at?: Date;
+      roles: Array<{
+        uuid: string;
+        name: string;
+        description?: string;
+        permissions?: Record<string, any>;
+      }>;
+      permissions: Record<string, any>;
+      member_since: Date;
+      is_owner: boolean;
+      is_admin: boolean;
+    };
     accessToken: string;
     refreshToken: string;
     sessionData: SessionData;
@@ -35,6 +93,14 @@ export class SessionService {
     const refreshTokenHash = UserSessionRepository.hashRefreshToken(refreshToken);
 
     // Get user's organizations and roles
+    const organizations = await OrganizationMemberRepository.getUserOrganizationsWithFullDetails(userId);
+    
+    // Sort organizations by member_since (oldest first) to get the default organization
+    const sortedOrganizations = organizations.sort((a, b) => 
+      new Date(a.member_since).getTime() - new Date(b.member_since).getTime()
+    );
+
+    // Build session data
     const sessionData = await this.buildSessionData(userId);
 
     // Set expiration (7 days from now)
@@ -66,7 +132,53 @@ export class SessionService {
       tokenId: session.uuid
     });
 
+    // Transform organizations data
+    const transformedOrganizations = sortedOrganizations.map(org => {
+      const isPlatformOrg = org.organization.slug === 'movigo-platform';
+      
+      // Filter permissions based on organization type
+      const filteredPermissions = this.filterPermissionsByOrganizationType(
+        this.consolidatePermissions(org.roles),
+        isPlatformOrg
+      );
+
+      return {
+        uuid: org.organization.uuid,
+        name: org.organization.name,
+        slug: org.organization.slug,
+        description: org.organization.description,
+        domain: org.organization.domain,
+        logo_url: org.organization.logo_url,
+        website_url: org.organization.website_url,
+        contact_email: org.organization.contact_email,
+        contact_phone: org.organization.contact_phone,
+        address: org.organization.address,
+        status: org.organization.status,
+        plan_type: org.organization.plan_type,
+        subscription_expires_at: org.organization.subscription_expires_at,
+        roles: org.roles.map(role => ({
+          uuid: role.uuid,
+          name: role.role_name,
+          description: role.description,
+          permissions: this.filterPermissionsByOrganizationType(role.permissions, isPlatformOrg)
+        })),
+        member_since: org.member_since,
+        is_owner: org.roles.some(role => role.role_name === 'OWNER'),
+        is_admin: org.roles.some(role => role.role_name === 'PLATFORM_ADMIN')
+      };
+    });
+
     return {
+      user: {
+        uuid: user.uuid,
+        email: user.email,
+        name: user.name,
+        status: user.status,
+        created_at: user.created_at,
+        updated_at: user.updated_at
+      },
+      organizations: transformedOrganizations,
+      default_organization: transformedOrganizations.length > 0 ? transformedOrganizations[0] : undefined,
       accessToken,
       refreshToken: jwtRefreshToken,
       sessionData,
@@ -162,18 +274,48 @@ export class SessionService {
    * Build session data with user's organizations and roles
    */
   private static async buildSessionData(userId: number): Promise<SessionData> {
-    // Get user's organizations and roles
-    const organizations = await OrganizationMemberRepository.getUserOrganizationsWithRoles(userId);
+    // Get user's organizations and roles with full organization details
+    const organizations = await OrganizationMemberRepository.getUserOrganizationsWithFullDetails(userId);
     
     const sessionData: SessionData = {
-      organizations: organizations.map(org => ({
-        id: org.organization.id,
-        name: org.organization.name,
-        roles: org.roles.map(role => role.role_name),
-        permissions: this.consolidatePermissions(org.roles)
-      })),
+      organizations: organizations.map(org => {
+        const isPlatformOrg = org.organization.slug === 'movigo-platform';
+        
+        // Filter permissions based on organization type
+        const filteredPermissions = this.filterPermissionsByOrganizationType(
+          this.consolidatePermissions(org.roles),
+          isPlatformOrg
+        );
+
+        return {
+          uuid: org.organization.uuid,
+          name: org.organization.name,
+          slug: org.organization.slug,
+          description: org.organization.description,
+          domain: org.organization.domain,
+          logo_url: org.organization.logo_url,
+          website_url: org.organization.website_url,
+          contact_email: org.organization.contact_email,
+          contact_phone: org.organization.contact_phone,
+          address: org.organization.address,
+          status: org.organization.status,
+          plan_type: org.organization.plan_type,
+          subscription_expires_at: org.organization.subscription_expires_at,
+          roles: org.roles.map(role => ({
+            uuid: role.uuid,
+            name: role.role_name,
+            description: role.description,
+            permissions: this.filterPermissionsByOrganizationType(role.permissions, isPlatformOrg)
+          })),
+          permissions: {},
+          member_since: org.member_since,
+          is_owner: org.roles.some(role => role.role_name === 'OWNER'),
+          is_admin: org.roles.some(role => role.role_name === 'PLATFORM_ADMIN')
+        };
+      }),
       preferences: {},
-      lastOrganizationId: organizations.length > 0 ? organizations[0].organization.id : undefined
+      lastOrganizationUuid: organizations.length > 0 ? organizations[0].organization.uuid : undefined,
+      total_organizations: organizations.length
     };
 
     return sessionData;
@@ -207,6 +349,44 @@ export class SessionService {
     }
 
     return consolidated;
+  }
+
+  /**
+   * Filter permissions based on organization type
+   */
+  private static filterPermissionsByOrganizationType(
+    permissions: Record<string, any>,
+    isPlatformOrg: boolean
+  ): Record<string, any> {
+    const filteredPermissions: Record<string, any> = {};
+
+    if (isPlatformOrg) {
+      // For platform organizations, include platform-level permissions
+      const platformPermissions = [
+        'organizations', 'users', 'members', 'system', 
+        'security', 'logs', 'notifications'
+      ];
+      
+      for (const [resource, actions] of Object.entries(permissions)) {
+        if (platformPermissions.includes(resource)) {
+          filteredPermissions[resource] = actions;
+        }
+      }
+    } else {
+      // For regular organizations, include only organization-level permissions
+      const organizationPermissions = [
+        'orders', 'drivers', 'customers', 'reports', 
+        'settings', 'billing', 'analytics'
+      ];
+      
+      for (const [resource, actions] of Object.entries(permissions)) {
+        if (organizationPermissions.includes(resource)) {
+          filteredPermissions[resource] = actions;
+        }
+      }
+    }
+
+    return filteredPermissions;
   }
 
   /**

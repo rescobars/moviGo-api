@@ -6,13 +6,32 @@ export const UserSessionStatusEnum = z.enum(['ACTIVE', 'EXPIRED', 'REVOKED']);
 // Session data schema
 export const SessionDataSchema = z.object({
   organizations: z.array(z.object({
-    id: z.number(),
+    uuid: z.string(),
     name: z.string(),
-    roles: z.array(z.string()),
-    permissions: z.record(z.any()).optional()
+    slug: z.string(),
+    description: z.string().optional(),
+    domain: z.string().optional(),
+    logo_url: z.string().optional(),
+    website_url: z.string().optional(),
+    contact_email: z.string().optional(),
+    contact_phone: z.string().optional(),
+    address: z.string().optional(),
+    status: z.string(),
+    plan_type: z.string(),
+    subscription_expires_at: z.date().optional(),
+    roles: z.array(z.object({
+      uuid: z.string(),
+      name: z.string(),
+      description: z.string().optional(),
+      permissions: z.record(z.any()).optional()
+    })),
+    member_since: z.date(),
+    is_owner: z.boolean(),
+    is_admin: z.boolean()
   })).optional(),
   preferences: z.record(z.any()).optional(),
-  lastOrganizationId: z.number().optional()
+  lastOrganizationUuid: z.string().optional(),
+  total_organizations: z.number().optional()
 });
 
 // Base user session schema
@@ -56,12 +75,61 @@ export const UpdateUserSessionSchema = z.object({
 // Schema for login response
 export const LoginResponseSchema = z.object({
   user: z.object({
-    id: z.number(),
     uuid: z.string(),
     email: z.string(),
     name: z.string(),
-    status: z.string()
+    status: z.string(),
+    created_at: z.date(),
+    updated_at: z.date()
   }),
+  organizations: z.array(z.object({
+    uuid: z.string(),
+    name: z.string(),
+    slug: z.string(),
+    description: z.string().optional(),
+    domain: z.string().optional(),
+    logo_url: z.string().optional(),
+    website_url: z.string().optional(),
+    contact_email: z.string().optional(),
+    contact_phone: z.string().optional(),
+    address: z.string().optional(),
+    status: z.string(),
+    plan_type: z.string(),
+    subscription_expires_at: z.date().optional(),
+    roles: z.array(z.object({
+      uuid: z.string(),
+      name: z.string(),
+      description: z.string().optional(),
+      permissions: z.record(z.any()).optional()
+    })),
+    member_since: z.date(),
+    is_owner: z.boolean(),
+    is_admin: z.boolean()
+  })),
+  default_organization: z.object({
+    uuid: z.string(),
+    name: z.string(),
+    slug: z.string(),
+    description: z.string().optional(),
+    domain: z.string().optional(),
+    logo_url: z.string().optional(),
+    website_url: z.string().optional(),
+    contact_email: z.string().optional(),
+    contact_phone: z.string().optional(),
+    address: z.string().optional(),
+    status: z.string(),
+    plan_type: z.string(),
+    subscription_expires_at: z.date().optional(),
+    roles: z.array(z.object({
+      uuid: z.string(),
+      name: z.string(),
+      description: z.string().optional(),
+      permissions: z.record(z.any()).optional()
+    })),
+    member_since: z.date(),
+    is_owner: z.boolean(),
+    is_admin: z.boolean()
+  }).optional(),
   access_token: z.string(),
   refresh_token: z.string(),
   expires_in: z.number(), // seconds

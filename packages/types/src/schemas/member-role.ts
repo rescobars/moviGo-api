@@ -5,45 +5,119 @@ export const MemberRoleStatusEnum = z.enum(['ACTIVE', 'INACTIVE']);
 
 // Common role names enum
 export const RoleNameEnum = z.enum([
-  'OWNER',
-  'ADMIN',
-  'MANAGER',
-  'ORDER_MANAGER',
-  'DRIVER',
-  'VIEWER',
-  'CUSTOMER_SERVICE',
-  'FINANCE_MANAGER'
+  'PLATFORM_ADMIN', // Administrador de plataforma - acceso a todo
+  'OWNER',          // Propietario de organización - acceso completo en su organización
+  'DRIVER',         // Conductor - acceso limitado a pedidos asignados
+  'VIEWER'          // Visualizador - solo lectura
 ]);
 
 // Permissions schema
 export const PermissionsSchema = z.object({
+  // Organization-specific permissions
   orders: z.object({
     create: z.boolean().optional(),
     read: z.boolean().optional(),
     update: z.boolean().optional(),
     delete: z.boolean().optional(),
-    assign: z.boolean().optional()
+    assign: z.boolean().optional(),
+    cancel: z.boolean().optional(),
+    refund: z.boolean().optional()
   }).optional(),
   drivers: z.object({
     create: z.boolean().optional(),
     read: z.boolean().optional(),
     update: z.boolean().optional(),
     delete: z.boolean().optional(),
-    assign: z.boolean().optional()
+    assign: z.boolean().optional(),
+    schedule: z.boolean().optional(),
+    track: z.boolean().optional()
   }).optional(),
   customers: z.object({
     create: z.boolean().optional(),
     read: z.boolean().optional(),
     update: z.boolean().optional(),
-    delete: z.boolean().optional()
+    delete: z.boolean().optional(),
+    block: z.boolean().optional(),
+    verify: z.boolean().optional()
   }).optional(),
   reports: z.object({
     read: z.boolean().optional(),
-    export: z.boolean().optional()
+    export: z.boolean().optional(),
+    create: z.boolean().optional(),
+    schedule: z.boolean().optional()
   }).optional(),
   settings: z.object({
     read: z.boolean().optional(),
-    update: z.boolean().optional()
+    update: z.boolean().optional(),
+    delete: z.boolean().optional()
+  }).optional(),
+  billing: z.object({
+    read: z.boolean().optional(),
+    update: z.boolean().optional(),
+    create: z.boolean().optional(),
+    refund: z.boolean().optional()
+  }).optional(),
+  analytics: z.object({
+    read: z.boolean().optional(),
+    export: z.boolean().optional(),
+    create: z.boolean().optional()
+  }).optional(),
+  
+  // Platform-level permissions (for admins)
+  organizations: z.object({
+    create: z.boolean().optional(),
+    read: z.boolean().optional(),
+    update: z.boolean().optional(),
+    delete: z.boolean().optional(),
+    suspend: z.boolean().optional(),
+    activate: z.boolean().optional(),
+    migrate: z.boolean().optional()
+  }).optional(),
+  members: z.object({
+    create: z.boolean().optional(),
+    read: z.boolean().optional(),
+    update: z.boolean().optional(),
+    delete: z.boolean().optional(),
+    invite: z.boolean().optional(),
+    remove: z.boolean().optional(),
+    assign_roles: z.boolean().optional()
+  }).optional(),
+  users: z.object({
+    create: z.boolean().optional(),
+    read: z.boolean().optional(),
+    update: z.boolean().optional(),
+    delete: z.boolean().optional(),
+    suspend: z.boolean().optional(),
+    activate: z.boolean().optional(),
+    reset_password: z.boolean().optional()
+  }).optional(),
+  system: z.object({
+    read: z.boolean().optional(),
+    update: z.boolean().optional(),
+    maintenance: z.boolean().optional(),
+    backup: z.boolean().optional(),
+    restore: z.boolean().optional()
+  }).optional(),
+  security: z.object({
+    read: z.boolean().optional(),
+    update: z.boolean().optional(),
+    audit: z.boolean().optional(),
+    block_ip: z.boolean().optional(),
+    whitelist: z.boolean().optional()
+  }).optional(),
+  logs: z.object({
+    read: z.boolean().optional(),
+    export: z.boolean().optional(),
+    delete: z.boolean().optional(),
+    analyze: z.boolean().optional()
+  }).optional(),
+  notifications: z.object({
+    create: z.boolean().optional(),
+    read: z.boolean().optional(),
+    update: z.boolean().optional(),
+    delete: z.boolean().optional(),
+    send: z.boolean().optional(),
+    schedule: z.boolean().optional()
   }).optional()
 });
 
