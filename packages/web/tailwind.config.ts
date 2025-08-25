@@ -5,6 +5,7 @@ const config: Config = {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/contexts/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
@@ -20,6 +21,7 @@ const config: Config = {
           700: '#0369a1',
           800: '#075985',
           900: '#0c4a6e',
+          950: '#082f49',
         },
         gray: {
           50: '#f9fafb',
@@ -32,6 +34,7 @@ const config: Config = {
           700: '#374151',
           800: '#1f2937',
           900: '#111827',
+          950: '#030712',
         }
       },
       fontFamily: {
