@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { authMiddleware, AuthenticatedRequest } from '@movigo/auth';
-import { db } from '@movigo/database';
+import { authMiddleware, AuthenticatedRequest } from '../../../auth/src/auth';
+import { db } from '../../../database/src/db-config';
 
 const router: Router = Router();
 

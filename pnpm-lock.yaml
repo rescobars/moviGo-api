@@ -14,6 +14,18 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.454.0
         version: 3.873.0
+      '@movigo/api':
+        specifier: workspace:*
+        version: link:packages/api
+      '@movigo/auth':
+        specifier: workspace:*
+        version: link:packages/auth
+      '@movigo/database':
+        specifier: workspace:*
+        version: link:packages/database
+      '@movigo/types':
+        specifier: workspace:*
+        version: link:packages/types
       '@types/bcryptjs':
         specifier: ^3.0.0
         version: 3.0.0
@@ -77,6 +89,75 @@ importers:
       zod:
         specifier: ^3.22.4
         version: 3.25.76
+
+  packages/api:
+    dependencies:
+      '@movigo/auth':
+        specifier: workspace:*
+        version: link:../auth
+      '@movigo/database':
+        specifier: workspace:*
+        version: link:../database
+      '@movigo/types':
+        specifier: workspace:*
+        version: link:../types
+      '@types/cors':
+        specifier: ^2.8.17
+        version: 2.8.19
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.23
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
+      express:
+        specifier: ^4.18.2
+        version: 4.21.2
+      helmet:
+        specifier: ^7.1.0
+        version: 7.2.0
+
+  packages/auth:
+    dependencies:
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.23
+      '@types/jsonwebtoken':
+        specifier: ^9.0.10
+        version: 9.0.10
+      express:
+        specifier: ^4.18.2
+        version: 4.21.2
+      jsonwebtoken:
+        specifier: ^9.0.2
+        version: 9.0.2
+
+  packages/database:
+    dependencies:
+      '@movigo/types':
+        specifier: workspace:*
+        version: link:../types
+      '@types/bcryptjs':
+        specifier: ^3.0.0
+        version: 3.0.0
+      bcryptjs:
+        specifier: ^3.0.2
+        version: 3.0.2
+      dotenv:
+        specifier: ^16.5.0
+        version: 16.6.1
+      knex:
+        specifier: ^3.0.1
+        version: 3.1.0(pg@8.16.3)
+      pg:
+        specifier: ^8.11.3
+        version: 8.16.3
+
+  packages/types:
+    dependencies:
+      knex:
+        specifier: ^3.0.1
+        version: 3.1.0(pg@8.16.3)
 
 packages:
 

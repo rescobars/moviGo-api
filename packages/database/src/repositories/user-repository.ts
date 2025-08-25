@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { User } from '@movigo/types';
+import { User } from '../../../types/src/index';
 
 export class UserRepository {
   constructor(private db: Knex) {}

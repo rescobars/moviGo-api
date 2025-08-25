@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { db } from '@movigo/database';
+import { db } from '../../../database/src/db-config';
 
 const router: Router = Router();
 

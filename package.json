@@ -4,9 +4,7 @@
   "type": "module",
   "description": "Express server with TypeScript, Knex, and PostgreSQL for the moviGo application",
   "main": "dist/index.js",
-  "workspaces": [
-    "packages/*"
-  ],
+
   "engines": {
     "node": "22.x",
     "npm": "10.x"
