@@ -30,7 +30,7 @@ export class UserController {
     try {
       const { id } = req.params;
       
-      const user = await UserRepository.findById(id);
+      const user = await UserRepository.findById(parseInt(id));
       
       if (!user) {
         return res.status(404).json({
@@ -99,7 +99,7 @@ export class UserController {
         email: validatedData.email,
         name: validatedData.name,
         password_hash: passwordHash,
-        status: 'ACTIVE'
+        status: 'ACTIVE' as const
       };
 
       const user = await UserRepository.create(userData);
@@ -122,7 +122,7 @@ export class UserController {
       const { id } = req.params;
       const validatedData = UpdateUserSchema.parse(req.body);
       
-      const user = await UserRepository.update(id, validatedData);
+      const user = await UserRepository.update(parseInt(id), validatedData);
       
       if (!user) {
         return res.status(404).json({
@@ -148,7 +148,7 @@ export class UserController {
     try {
       const { id } = req.params;
       
-      const deleted = await UserRepository.delete(id);
+      const deleted = await UserRepository.delete(parseInt(id));
       
       if (!deleted) {
         return res.status(404).json({
@@ -195,7 +195,7 @@ export class UserController {
 
       // Generate JWT token
       const token = generateToken({
-        userId: user.id,
+        userId: user.id.toString(),
         email: user.email
       });
 
@@ -233,7 +233,7 @@ export class UserController {
         });
       }
       
-      const user = await UserRepository.updateStatus(id, status);
+      const user = await UserRepository.updateStatus(parseInt(id), status);
       
       if (!user) {
         return res.status(404).json({

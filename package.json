@@ -14,10 +14,14 @@
     "start": "tsx src/index.ts",
     "clean": "rm -rf dist",
     "migrate": "tsx -r tsx/register node_modules/.bin/knex migrate:latest",
-    "migrate:status": "tsx -r tsx/register node_modules/.bin/knex migrate:status",
+    "migrate:status": "tsx -r tsx/register node_modules/.bin/knex knex migrate:status",
     "seed": "tsx -r tsx/register node_modules/.bin/knex seed:run",
     "build:packages": "npm run build --workspaces",
     "dev:packages": "npm run dev --workspaces",
+    "web:dev": "cd packages/web && pnpm dev",
+    "web:build": "cd packages/web && pnpm build",
+    "web:start": "cd packages/web && pnpm start",
+    "dev:all": "concurrently \"npm run dev\" \"npm run web:dev\"",
     "postinstall": "npm run build"
   },
   "dependencies": {
