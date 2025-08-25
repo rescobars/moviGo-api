@@ -16,8 +16,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Fundadora del restaurante',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: true,
-      is_admin: true,
     },
     {
       id: 2,
@@ -28,8 +26,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Encargado de la gestión diaria',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: false,
-      is_admin: true,
     },
     {
       id: 3,
@@ -40,8 +36,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Maneja los pedidos y la atención al cliente',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: false,
-      is_admin: false,
     },
 
     // Pizza Express - Members
@@ -54,8 +48,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Fundador de Pizza Express',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: true,
-      is_admin: true,
     },
     {
       id: 5,
@@ -66,8 +58,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Supervisa las operaciones diarias',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: false,
-      is_admin: false,
     },
 
     // Café Central - Members
@@ -80,8 +70,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Fundador del Café Central',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: true,
-      is_admin: true,
     },
     {
       id: 7,
@@ -92,8 +80,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Experta en preparación de café',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: false,
-      is_admin: false,
     },
 
     // Sushi Master - Members
@@ -106,8 +92,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Chef principal y propietario',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: true,
-      is_admin: true,
     },
     {
       id: 9,
@@ -118,8 +102,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Maneja el servicio al cliente y reservas',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: false,
-      is_admin: true,
     },
 
     // Drivers (shared across organizations)
@@ -132,8 +114,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Conductor asignado a El Buen Sabor',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: false,
-      is_admin: false,
     },
     {
       id: 11,
@@ -144,8 +124,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Conductor asignado a Pizza Express',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: false,
-      is_admin: false,
     },
     {
       id: 12,
@@ -156,8 +134,6 @@ export async function seed(knex: Knex): Promise<void> {
       notes: 'Conductor asignado a Sushi Master',
       status: 'ACTIVE',
       is_active: true,
-      is_owner: false,
-      is_admin: false,
     },
   ]);
 }

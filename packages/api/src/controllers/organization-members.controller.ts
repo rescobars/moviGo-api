@@ -61,8 +61,7 @@ export class OrganizationMembersController {
         name, 
         title, 
         roles = [], 
-        inviterName = 'Admin',
-        is_admin = false 
+        inviterName = 'Admin'
       } = req.body;
 
       // Validate required fields
@@ -116,9 +115,7 @@ export class OrganizationMembersController {
         organization_id,
         user_id: newUser.id,
         title,
-        status: 'PENDING' as const,
-        is_owner: false,
-        is_admin
+        status: 'PENDING' as const
       };
 
       const result = await OrganizationMemberRepository.createMemberWithRoles(memberData, roles);

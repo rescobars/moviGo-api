@@ -17,10 +17,6 @@ export async function up(knex: Knex): Promise<void> {
     table.enum('status', ['ACTIVE', 'INACTIVE', 'PENDING']).defaultTo('ACTIVE');
     table.boolean('is_active').defaultTo(true);
     
-    // Permissions and access
-    table.boolean('is_owner').defaultTo(false);
-    table.boolean('is_admin').defaultTo(false);
-    
     // Timestamps
     table.timestamp('joined_at').defaultTo(knex.fn.now());
     table.timestamp('created_at').defaultTo(knex.fn.now());
@@ -31,8 +27,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index(['user_id']);
     table.index(['status']);
     table.index(['is_active']);
-    table.index(['is_owner']);
-    table.index(['is_admin']);
     table.index(['joined_at']);
     
     // Unique constraint: user can only be member once per organization

@@ -13,8 +13,6 @@ export const OrganizationMemberSchema = z.object({
   notes: z.string().optional(),
   status: OrganizationMemberStatusEnum,
   is_active: z.boolean(),
-  is_owner: z.boolean(),
-  is_admin: z.boolean(),
   joined_at: z.date(),
   created_at: z.date(),
   updated_at: z.date()
@@ -26,9 +24,7 @@ export const CreateOrganizationMemberSchema = z.object({
   user_id: z.number().int().positive('Invalid user ID'),
   title: z.string().optional(),
   notes: z.string().optional(),
-  status: OrganizationMemberStatusEnum.optional().default('ACTIVE'),
-  is_owner: z.boolean().optional().default(false),
-  is_admin: z.boolean().optional().default(false)
+  status: OrganizationMemberStatusEnum.optional().default('ACTIVE')
 });
 
 // Schema for updating an organization member
@@ -36,17 +32,14 @@ export const UpdateOrganizationMemberSchema = z.object({
   title: z.string().optional(),
   notes: z.string().optional(),
   status: OrganizationMemberStatusEnum.optional(),
-  is_active: z.boolean().optional(),
-  is_owner: z.boolean().optional(),
-  is_admin: z.boolean().optional()
+  is_active: z.boolean().optional()
 });
 
 // Schema for inviting a member to an organization
 export const InviteMemberSchema = z.object({
   organization_id: z.number().int().positive('Invalid organization ID'),
   email: z.string().email('Invalid email format'),
-  title: z.string().optional(),
-  is_admin: z.boolean().optional().default(false)
+  title: z.string().optional()
 });
 
 // Type exports
