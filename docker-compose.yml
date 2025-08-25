@@ -8,16 +8,16 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: movigo_dev
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: movigo_user
+      POSTGRES_PASSWORD: movigo_password
     ports:
-      - "5432:5432"
+      - "5431:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - movigo_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d movigo_dev"]
+      test: ["CMD-SHELL", "pg_isready -U movigo_user -d movigo_dev"]
       interval: 30s
       timeout: 10s
       retries: 3
