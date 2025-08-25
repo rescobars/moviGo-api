@@ -61,16 +61,16 @@ export function Sidebar({ isOpen, onToggle, user, onLogout }: SidebarProps) {
       {/* Mobile overlay */}
       {isOpen && (
         <div 
-          className="fixed top-12 left-0 right-0 bottom-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={onToggle}
         />
       )}
 
       {/* Sidebar */}
       <div className={clsx(
-        'fixed top-12 left-0 z-40 h-[calc(100vh-48px)] bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out',
-        'w-64 lg:translate-x-0 lg:static lg:inset-0 lg:top-0 lg:h-full',
-        isOpen ? 'translate-x-0' : '-translate-x-full'
+        'w-64 bg-white border-r border-gray-200 flex flex-col',
+        'fixed lg:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out',
+        isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       )}>
         {/* Header */}
         <div className="flex items-center justify-between h-12 px-4 border-b border-gray-200">
@@ -106,7 +106,7 @@ export function Sidebar({ isOpen, onToggle, user, onLogout }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-3 space-y-1">
+        <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (

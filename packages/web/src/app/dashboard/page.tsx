@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { StatCard } from '@/components/ui/StatCard';
+import { getUserPermissions, getAvailableOrganizationsForInvite, canInviteToOrganization, type UserPermissions } from '@/lib/permissions';
 import { 
   Users, 
   Plus, 
@@ -36,6 +37,29 @@ export default function DashboardPage() {
     roles: ['MANAGER']
   });
 
+  // Calculate user permissions
+  const userPermissions: UserPermissions = useMemo(() => {
+    if (!user || !sessionData?.organizations) {
+      return {
+        canInviteToAnyOrganization: false,
+        canInviteToOwnOrganization: false,
+        canCreateOrganizations: false,
+        canManageMembers: false,
+        canViewAllOrganizations: false,
+        canManageOwnOrganization: false,
+      };
+    }
+
+    const userRoles = sessionData.organizations.flatMap(org => org.roles);
+    return getUserPermissions(userRoles, sessionData.organizations, user.id);
+  }, [user, sessionData]);
+
+  // Get available organizations for inviting
+  const availableOrganizations = useMemo(() => {
+    if (!sessionData?.organizations) return [];
+    return getAvailableOrganizationsForInvite(userPermissions, sessionData.organizations);
+  }, [sessionData, userPermissions]);
+
   const handleInviteSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsInviting(true);
@@ -43,8 +67,8 @@ export default function DashboardPage() {
     setInviteSuccess(false);
 
     try {
-      // Por ahora usamos la primera organización disponible
-      const organizationId = sessionData?.organizations?.[0]?.id || 1;
+      // Use the first available organization or the selected one
+      const organizationId = availableOrganizations[0]?.id || 1;
       
       const response = await apiService.inviteMember(
         {
@@ -90,6 +114,19 @@ export default function DashboardPage() {
         <p className="text-gray-600">
           Aquí tienes un resumen de tu actividad y organizaciones
         </p>
+        {/* Show user role info */}
+        <div className="mt-2 text-sm text-gray-500">
+          {userPermissions.canInviteToAnyOrganization && (
+            <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2">
+              Administrador
+            </span>
+          )}
+          {userPermissions.canCreateOrganizations && (
+            <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded mr-2">
+              Creador de Organizaciones
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -131,22 +168,42 @@ export default function DashboardPage() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900">Tus Organizaciones</h2>
-          <Button
-            onClick={() => setShowInviteForm(true)}
-            className="hidden md:flex"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Invitar Miembro
-          </Button>
+          <div className="flex space-x-2">
+            {userPermissions.canCreateOrganizations && (
+              <Button
+                variant="outline"
+                className="hidden md:flex"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Crear Organización
+              </Button>
+            )}
+            {(userPermissions.canInviteToAnyOrganization || userPermissions.canInviteToOwnOrganization) && (
+              <Button
+                onClick={() => setShowInviteForm(true)}
+                className="hidden md:flex"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Invitar Miembro
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sessionData?.organizations?.map((org) => (
             <Card key={org.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Building2 className="w-5 h-5 text-primary-600 mr-2" />
-                  {org.name}
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Building2 className="w-5 h-5 text-primary-600 mr-2" />
+                    {org.name}
+                  </div>
+                  {(org as any).owner_id === user.id && (
+                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                      Owner
+                    </span>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -155,15 +212,17 @@ export default function DashboardPage() {
                     <Users className="w-4 h-4 mr-2" />
                     Roles: {org.roles.join(', ')}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full md:hidden"
-                    onClick={() => setShowInviteForm(true)}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Invitar Miembro
-                  </Button>
+                  {canInviteToOrganization(userPermissions, org.id, sessionData.organizations || []) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full md:hidden"
+                      onClick={() => setShowInviteForm(true)}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Invitar Miembro
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -181,13 +240,15 @@ export default function DashboardPage() {
               <p className="text-gray-600 mb-4">
                 Aún no has sido agregado a ninguna organización.
               </p>
-              <Button
-                variant="outline"
-                onClick={() => setShowInviteForm(true)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Crear Organización
-              </Button>
+              {userPermissions.canCreateOrganizations && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowInviteForm(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crear Organización
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
