@@ -182,7 +182,8 @@ export class SessionService {
       default_organization: transformedOrganizations.length > 0 ? transformedOrganizations[0] : undefined,
       accessToken,
       refreshToken: jwtRefreshToken,
-      expiresIn: 24 * 60 * 60 // 24 hours in seconds
+      expiresIn: 24 * 60 * 60, // 24 hours in seconds
+      sessionData: {}
     };
   }
 

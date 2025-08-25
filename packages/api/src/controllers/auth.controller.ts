@@ -82,64 +82,11 @@ export class AuthController {
         });
       }
 
-      const validatedData = { token };
-      
-      // Find token in database
-      const authToken = await AuthTokenRepository.findByToken(validatedData.token);
-      
-      if (!authToken) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid or expired token'
-        });
+      const result = await AuthController.verifyTokenAndCreateSession(token, req);
+      if (result.statusCode) {
+        return res.status(result.statusCode).json(result);
       }
-
-      // Check if token is expired
-      if (new Date() > new Date(authToken.expires_at)) {
-        await AuthTokenRepository.markAsExpired(validatedData.token);
-        return res.status(400).json({
-          success: false,
-          error: 'Token has expired'
-        });
-      }
-
-      // Check if token is already used
-      if (authToken.status === 'USED') {
-        return res.status(400).json({
-          success: false,
-          error: 'Token has already been used'
-        });
-      }
-
-      // Get user
-      const user = await UserRepository.findById(authToken.user_id);
-      
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          error: 'User not found'
-        });
-      }
-
-      // Mark token as used
-      await AuthTokenRepository.markAsUsed(validatedData.token);
-
-      // Create session with device information
-      const deviceInfo = SessionService.extractDeviceInfo(req);
-      const session = await SessionService.createSession(user.id, deviceInfo);
-
-      res.json({
-        success: true,
-        message: 'Login successful',
-        data: {
-          user: session.user,
-          organizations: session.organizations,
-          default_organization: session.default_organization,
-          access_token: session.accessToken,
-          refresh_token: session.refreshToken,
-          expires_in: session.expiresIn
-        }
-      });
+      res.json(result);
     } catch (error) {
       console.error('Error verifying token:', error);
       res.status(400).json({
@@ -153,62 +100,11 @@ export class AuthController {
     try {
       const validatedData = VerifyTokenSchema.parse(req.body);
       
-      // Find token in database
-      const authToken = await AuthTokenRepository.findByToken(validatedData.token);
-      
-      if (!authToken) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid or expired token'
-        });
+      const result = await AuthController.verifyTokenAndCreateSession(validatedData.token, req);
+      if (result.statusCode) {
+        return res.status(result.statusCode).json(result);
       }
-
-      // Check if token is expired
-      if (new Date() > new Date(authToken.expires_at)) {
-        await AuthTokenRepository.markAsExpired(validatedData.token);
-        return res.status(400).json({
-          success: false,
-          error: 'Token has expired'
-        });
-      }
-
-      // Check if token is already used
-      if (authToken.status === 'USED') {
-        return res.status(400).json({
-          success: false,
-          error: 'Token has already been used'
-        });
-      }
-
-      // Get user
-      const user = await UserRepository.findById(authToken.user_id);
-      
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          error: 'User not found'
-        });
-      }
-
-      // Mark token as used
-      await AuthTokenRepository.markAsUsed(validatedData.token);
-
-      // Create session with device information
-      const deviceInfo = SessionService.extractDeviceInfo(req);
-      const session = await SessionService.createSession(user.id, deviceInfo);
-
-      res.json({
-        success: true,
-        message: 'Login successful',
-        data: {
-          user: session.user,
-          organizations: session.organizations,
-          default_organization: session.default_organization,
-          access_token: session.accessToken,
-          refresh_token: session.refreshToken,
-          expires_in: session.expiresIn
-        }
-      });
+      res.json(result);
     } catch (error) {
       console.error('Error verifying token:', error);
       res.status(400).json({
@@ -229,62 +125,11 @@ export class AuthController {
         });
       }
 
-      // Find token by verification code
-      const authToken = await AuthTokenRepository.findByVerificationCode(code);
-      
-      if (!authToken) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid or expired verification code'
-        });
+      const result = await AuthController.verifyCodeAndCreateSession(code, req);
+      if (result.statusCode) {
+        return res.status(result.statusCode).json(result);
       }
-
-      // Check if token is expired
-      if (new Date() > new Date(authToken.expires_at)) {
-        await AuthTokenRepository.markAsExpired(authToken.token);
-        return res.status(400).json({
-          success: false,
-          error: 'Verification code has expired'
-        });
-      }
-
-      // Check if token is already used
-      if (authToken.status === 'USED') {
-        return res.status(400).json({
-          success: false,
-          error: 'Verification code has already been used'
-        });
-      }
-
-      // Get user
-      const user = await UserRepository.findById(authToken.user_id);
-      
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          error: 'User not found'
-        });
-      }
-
-      // Mark token as used
-      await AuthTokenRepository.markAsUsed(authToken.token);
-
-      // Create session with device information
-      const deviceInfo = SessionService.extractDeviceInfo(req);
-      const session = await SessionService.createSession(user.id, deviceInfo);
-
-      res.json({
-        success: true,
-        message: 'Login successful',
-        data: {
-          user: session.user,
-          organizations: session.organizations,
-          default_organization: session.default_organization,
-          access_token: session.accessToken,
-          refresh_token: session.refreshToken,
-          expires_in: session.expiresIn
-        }
-      });
+      res.json(result);
     } catch (error) {
       console.error('Error verifying code:', error);
       res.status(400).json({
@@ -393,6 +238,144 @@ export class AuthController {
         success: false,
         error: 'Failed to get profile'
       });
+    }
+  }
+
+  // Private helper method to handle token verification safely
+  private static async verifyTokenAndCreateSession(token: string, req: Request) {
+    try {
+      // Find token in database
+      const authToken = await AuthTokenRepository.findByToken(token);
+      
+      if (!authToken) {
+        return {
+          success: false,
+          error: 'Invalid or expired token',
+          statusCode: 400
+        };
+      }
+
+      // Check if token is expired
+      if (new Date() > new Date(authToken.expires_at)) {
+        await AuthTokenRepository.markAsExpired(token);
+        return {
+          success: false,
+          error: 'Token has expired',
+          statusCode: 400
+        };
+      }
+
+      // Check if token is already used
+      if (authToken.status === 'USED') {
+        return {
+          success: false,
+          error: 'Token has already been used',
+          statusCode: 400
+        };
+      }
+
+      // Get user
+      const user = await UserRepository.findById(authToken.user_id);
+      
+      if (!user) {
+        return {
+          success: false,
+          error: 'User not found',
+          statusCode: 404
+        };
+      }
+
+      // Create session with device information
+      const deviceInfo = SessionService.extractDeviceInfo(req);
+      const session = await SessionService.createSession(user.id, deviceInfo);
+
+      // Mark token as used only after successful session creation
+      await AuthTokenRepository.markAsUsed(token);
+
+      return {
+        success: true,
+        message: 'Login successful',
+        data: {
+          user: session.user,
+          organizations: session.organizations,
+          default_organization: session.default_organization,
+          access_token: session.accessToken,
+          refresh_token: session.refreshToken,
+          expires_in: session.expiresIn
+        }
+      };
+    } catch (error) {
+      console.error('Error in token verification:', error);
+      throw error;
+    }
+  }
+
+  // Private helper method to handle verification code verification safely
+  private static async verifyCodeAndCreateSession(code: string, req: Request) {
+    try {
+      // Find token by verification code
+      const authToken = await AuthTokenRepository.findByVerificationCode(code);
+      
+      if (!authToken) {
+        return {
+          success: false,
+          error: 'Invalid or expired verification code',
+          statusCode: 400
+        };
+      }
+
+      // Check if token is expired
+      if (new Date() > new Date(authToken.expires_at)) {
+        await AuthTokenRepository.markAsExpired(authToken.token);
+        return {
+          success: false,
+          error: 'Verification code has expired',
+          statusCode: 400
+        };
+      }
+
+      // Check if token is already used
+      if (authToken.status === 'USED') {
+        return {
+          success: false,
+          error: 'Verification code has already been used',
+          statusCode: 400
+        };
+      }
+
+      // Get user
+      const user = await UserRepository.findById(authToken.user_id);
+      
+      if (!user) {
+        return {
+          success: false,
+          error: 'User not found',
+          statusCode: 404
+        };
+      }
+
+      // Create session with device information
+      const deviceInfo = SessionService.extractDeviceInfo(req);
+      const session = await SessionService.createSession(user.id, deviceInfo);
+
+      // Mark token as used only after successful session creation
+      await AuthTokenRepository.markAsUsed(authToken.token);
+
+      return {
+        success: true,
+        message: 'Login successful',
+        data: {
+          user: session.user,
+          organizations: session.organizations,
+          default_organization: session.default_organization,
+          access_token: session.accessToken,
+          refresh_token: session.refreshToken,
+          expires_in: session.expiresIn
+        }
+      };
+    } catch (error) {
+      console.error('Error in code verification:', error);
+      throw error;
     }
   }
 }
