@@ -84,4 +84,37 @@ export class OrganizationMemberRepository {
   static async isAdmin(userId: number, organizationId: number): Promise<boolean> {
     return this.hasRole(userId, organizationId, 'ADMIN');
   }
+
+  static async getUserOrganizationsWithRoles(userId: number): Promise<Array<{
+    organization: { id: number; name: string };
+    roles: MemberRole[];
+  }>> {
+    const members = await db('organization_members')
+      .join('organizations', 'organization_members.organization_id', 'organizations.id')
+      .where('organization_members.user_id', userId)
+      .where('organization_members.is_active', true)
+      .select(
+        'organizations.id as org_id',
+        'organizations.name as org_name',
+        'organization_members.id as member_id'
+      );
+
+    const result = [];
+    for (const member of members) {
+      const roles = await db('member_roles')
+        .where('organization_member_id', member.member_id)
+        .where('is_active', true)
+        .select('*');
+
+      result.push({
+        organization: {
+          id: member.org_id,
+          name: member.org_name
+        },
+        roles
+      });
+    }
+
+    return result;
+  }
 }

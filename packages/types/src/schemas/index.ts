@@ -4,3 +4,4 @@ export * from './auth-token';
 export * from './organization';
 export * from './organization-member';
 export * from './member-role';
+export * from './user-session';

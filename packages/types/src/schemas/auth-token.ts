@@ -8,9 +8,9 @@ export const AuthTokenStatusEnum = z.enum(['PENDING', 'USED', 'EXPIRED']);
 
 // Base auth token schema
 export const AuthTokenSchema = z.object({
-  id: z.string().uuid(),
+  id: z.number().int().positive(),
   uuid: z.string().uuid(),
-  user_id: z.string().uuid(),
+  user_id: z.number().int().positive(),
   token: z.string(),
   type: AuthTokenTypeEnum,
   status: AuthTokenStatusEnum,
@@ -22,7 +22,7 @@ export const AuthTokenSchema = z.object({
 
 // Schema for creating a new auth token
 export const CreateAuthTokenSchema = z.object({
-  user_id: z.string().uuid(),
+  user_id: z.number().int().positive(),
   type: AuthTokenTypeEnum,
   expires_at: z.date()
 });

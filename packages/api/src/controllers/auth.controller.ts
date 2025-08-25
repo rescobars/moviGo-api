@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { UserRepository } from '../../../database/src/repositories/user-repository';
 import { AuthTokenRepository } from '../../../database/src/repositories/auth-token.repository';
 import { EmailService } from '../services/email.service';
+import { SessionService } from '../services/session.service';
 import { generateToken } from '../../../auth/src/jwt';
 import { 
   PasswordlessLoginSchema, 
@@ -110,11 +111,9 @@ export class AuthController {
       // Mark token as used
       await AuthTokenRepository.markAsUsed(validatedData.token);
 
-      // Generate JWT token (never expires)
-      const jwtToken = generateToken({
-        userId: user.id,
-        email: user.email
-      });
+      // Create session with device information
+      const deviceInfo = SessionService.extractDeviceInfo(req);
+      const session = await SessionService.createSession(user.id, deviceInfo);
 
       res.json({
         success: true,
@@ -127,7 +126,10 @@ export class AuthController {
             name: user.name,
             status: user.status
           },
-          token: jwtToken
+          access_token: session.accessToken,
+          refresh_token: session.refreshToken,
+          expires_in: session.expiresIn,
+          session_data: session.sessionData
         }
       });
     } catch (error) {
@@ -141,8 +143,18 @@ export class AuthController {
 
   static async logout(req: Request, res: Response) {
     try {
-      // In a real implementation, you might want to blacklist the token
-      // For now, we'll just return success since JWT tokens are stateless
+      const refreshToken = req.body.refresh_token || req.headers['x-refresh-token'];
+      
+      if (refreshToken) {
+        // Revoke the specific session
+        await SessionService.revokeSession(refreshToken as string);
+      } else {
+        // If no refresh token provided, get user from access token and revoke all sessions
+        const userId = (req as any).user?.userId;
+        if (userId) {
+          await SessionService.revokeAllUserSessions(parseInt(userId));
+        }
+      }
       
       res.json({
         success: true,
@@ -153,6 +165,36 @@ export class AuthController {
       res.status(500).json({
         success: false,
         error: 'Failed to logout'
+      });
+    }
+  }
+
+  static async refreshToken(req: Request, res: Response) {
+    try {
+      const refreshToken = req.body.refresh_token || req.headers['x-refresh-token'];
+      
+      if (!refreshToken) {
+        return res.status(400).json({
+          success: false,
+          error: 'Refresh token is required'
+        });
+      }
+
+      const result = await SessionService.refreshAccessToken(refreshToken as string);
+
+      res.json({
+        success: true,
+        message: 'Token refreshed successfully',
+        data: {
+          access_token: result.accessToken,
+          expires_in: result.expiresIn
+        }
+      });
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      res.status(401).json({
+        success: false,
+        error: 'Invalid or expired refresh token'
       });
     }
   }

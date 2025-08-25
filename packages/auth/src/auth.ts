@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from './jwt';
+import { verifyAccessToken } from './jwt';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -20,7 +20,7 @@ export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: N
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    const decoded = verifyToken(token);
+    const decoded = verifyAccessToken(token);
     
     req.user = {
       userId: decoded.userId,
@@ -42,7 +42,7 @@ export const optionalAuthMiddleware = (req: AuthenticatedRequest, res: Response,
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
-      const decoded = verifyToken(token);
+      const decoded = verifyAccessToken(token);
       
       req.user = {
         userId: decoded.userId,

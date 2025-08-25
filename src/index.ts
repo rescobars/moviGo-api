@@ -25,9 +25,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize repositories with database connection
-UserRepository.setDb(db);
-AuthTokenRepository.setDb(db);
+// Database connection is handled directly in repositories
 
 // Health check (public)
 app.get('/health', (req, res) => {
