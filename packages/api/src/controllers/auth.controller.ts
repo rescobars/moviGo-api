@@ -67,6 +67,89 @@ export class AuthController {
     }
   }
 
+  static async verifyPasswordlessTokenGet(req: Request, res: Response) {
+    try {
+      const token = req.query.token as string;
+      
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          error: 'Token is required'
+        });
+      }
+
+      const validatedData = { token };
+      
+      // Find token in database
+      const authToken = await AuthTokenRepository.findByToken(validatedData.token);
+      
+      if (!authToken) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid or expired token'
+        });
+      }
+
+      // Check if token is expired
+      if (new Date() > new Date(authToken.expires_at)) {
+        await AuthTokenRepository.markAsExpired(validatedData.token);
+        return res.status(400).json({
+          success: false,
+          error: 'Token has expired'
+        });
+      }
+
+      // Check if token is already used
+      if (authToken.status === 'USED') {
+        return res.status(400).json({
+          success: false,
+          error: 'Token has already been used'
+        });
+      }
+
+      // Get user
+      const user = await UserRepository.findById(authToken.user_id);
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          error: 'User not found'
+        });
+      }
+
+      // Mark token as used
+      await AuthTokenRepository.markAsUsed(validatedData.token);
+
+      // Create session with device information
+      const deviceInfo = SessionService.extractDeviceInfo(req);
+      const session = await SessionService.createSession(user.id, deviceInfo);
+
+      res.json({
+        success: true,
+        message: 'Login successful',
+        data: {
+          user: {
+            id: user.id,
+            uuid: user.uuid,
+            email: user.email,
+            name: user.name,
+            status: user.status
+          },
+          access_token: session.accessToken,
+          refresh_token: session.refreshToken,
+          expires_in: session.expiresIn,
+          session_data: session.sessionData
+        }
+      });
+    } catch (error) {
+      console.error('Error verifying token:', error);
+      res.status(400).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to verify token'
+      });
+    }
+  }
+
   static async verifyPasswordlessToken(req: Request, res: Response) {
     try {
       const validatedData = VerifyTokenSchema.parse(req.body);

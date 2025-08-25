@@ -7,6 +7,7 @@ const router: Router = Router();
 // Public routes (no authentication required)
 router.post('/passwordless/login', AuthController.requestPasswordlessLogin);
 router.post('/passwordless/verify', AuthController.verifyPasswordlessToken);
+router.get('/passwordless/verify', AuthController.verifyPasswordlessTokenGet);
 router.post('/refresh', AuthController.refreshToken);
 
 // Protected routes (authentication required)

@@ -35,12 +35,12 @@ export class EmailService {
       if (!process.env.RESEND_API_KEY) {
         console.log('⚠️ RESEND_API_KEY not configured, skipping email send');
         console.log(`🔑 Token: ${token}`);
-        console.log(`🌐 Login URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/verify?token=${token}`);
+        console.log(`🌐 Login URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/api/auth/passwordless/verify?token=${token}`);
         return true;
       }
 
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/verify?token=${token}`;
+      const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/api/auth/passwordless/verify?token=${token}`;
 
       const emailContent = `
         <p style="color: #666; line-height: 1.6;">
