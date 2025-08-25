@@ -132,8 +132,7 @@ export const LoginResponseSchema = z.object({
   }).optional(),
   access_token: z.string(),
   refresh_token: z.string(),
-  expires_in: z.number(), // seconds
-  session_data: SessionDataSchema
+  expires_in: z.number() // seconds
 });
 
 // Type exports

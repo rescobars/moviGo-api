@@ -137,8 +137,7 @@ export class AuthController {
           default_organization: session.default_organization,
           access_token: session.accessToken,
           refresh_token: session.refreshToken,
-          expires_in: session.expiresIn,
-          session_data: session.sessionData
+          expires_in: session.expiresIn
         }
       });
     } catch (error) {
@@ -207,8 +206,7 @@ export class AuthController {
           default_organization: session.default_organization,
           access_token: session.accessToken,
           refresh_token: session.refreshToken,
-          expires_in: session.expiresIn,
-          session_data: session.sessionData
+          expires_in: session.expiresIn
         }
       });
     } catch (error) {
@@ -284,8 +282,7 @@ export class AuthController {
           default_organization: session.default_organization,
           access_token: session.accessToken,
           refresh_token: session.refreshToken,
-          expires_in: session.expiresIn,
-          session_data: session.sessionData
+          expires_in: session.expiresIn
         }
       });
     } catch (error) {

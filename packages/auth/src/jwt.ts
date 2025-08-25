@@ -4,8 +4,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'movigo-jwt-secret-2024';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'movigo-refresh-secret-2024';
 
 // Token durations
-const ACCESS_TOKEN_EXPIRES_IN = '15m'; // 15 minutes
-const REFRESH_TOKEN_EXPIRES_IN = '7d'; // 7 days
+const ACCESS_TOKEN_EXPIRES_IN = '24h'; // 24 hours
+const REFRESH_TOKEN_EXPIRES_IN = '30d'; // 30 days
 
 export interface JWTPayload {
   userId: string;

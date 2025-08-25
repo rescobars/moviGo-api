@@ -103,9 +103,9 @@ export class SessionService {
     // Build session data
     const sessionData = await this.buildSessionData(userId);
 
-    // Set expiration (7 days from now)
+    // Set expiration (1 year from now - effectively permanent)
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
     // Create session in database
     const sessionDataToSave: CreateUserSession = {
@@ -162,6 +162,7 @@ export class SessionService {
           description: role.description,
           permissions: this.filterPermissionsByOrganizationType(role.permissions, isPlatformOrg)
         })),
+        permissions: {},
         member_since: org.member_since,
         is_owner: org.roles.some(role => role.role_name === 'OWNER'),
         is_admin: org.roles.some(role => role.role_name === 'PLATFORM_ADMIN')
@@ -181,8 +182,7 @@ export class SessionService {
       default_organization: transformedOrganizations.length > 0 ? transformedOrganizations[0] : undefined,
       accessToken,
       refreshToken: jwtRefreshToken,
-      sessionData,
-      expiresIn: 15 * 60 // 15 minutes in seconds
+      expiresIn: 24 * 60 * 60 // 24 hours in seconds
     };
   }
 
@@ -226,7 +226,7 @@ export class SessionService {
 
       return {
         accessToken,
-        expiresIn: 15 * 60 // 15 minutes in seconds
+        expiresIn: 24 * 60 * 60 // 24 hours in seconds
       };
     } catch (error) {
       throw new Error('Invalid refresh token');
