@@ -4,6 +4,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { db } from './db-config';
 import userRoutes from './routes/users';
+import migrationRoutes from './routes/migrations';
+import seedRoutes from './routes/seeds';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,92 +30,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Secret endpoints for migrations and seeds
-const SECRET_PASSWORD = process.env.SECRET_PASSWORD || 'movigo-secret-2024';
 
-// Middleware to verify secret password
-const verifySecretPassword = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const password = req.body.password || req.query.password;
-
-  if (!password) {
-    return res.status(401).json({
-      success: false,
-      error: 'Password required'
-    });
-  }
-
-  if (password !== SECRET_PASSWORD) {
-    return res.status(403).json({
-      success: false,
-      error: 'Invalid password'
-    });
-  }
-
-  next();
-};
-
-// POST /secret/run-migrations - Run all pending migrations
-app.post('/secret/run-migrations', verifySecretPassword, async (req, res) => {
-  try {
-    console.log('🔄 Starting migrations...');
-    
-    await db.migrate.latest();
-    const status = await db.migrate.status();
-    
-    res.json({
-      success: true,
-      message: 'Migrations completed successfully',
-      status
-    });
-  } catch (error) {
-    console.error('❌ Migration error:', error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error during migration'
-    });
-  }
-});
-
-// GET /secret/migration-status - Check migration status
-app.get('/secret/migration-status', verifySecretPassword, async (req, res) => {
-  try {
-    const status = await db.migrate.status();
-    
-    res.json({
-      success: true,
-      status
-    });
-  } catch (error) {
-    console.error('❌ Migration status error:', error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error checking migration status'
-    });
-  }
-});
-
-// POST /secret/run-seeds - Run all seeds
-app.post('/secret/run-seeds', verifySecretPassword, async (req, res) => {
-  try {
-    console.log('🌱 Starting seeds...');
-    
-    await db.seed.run();
-    
-    res.json({
-      success: true,
-      message: 'Seeds completed successfully'
-    });
-  } catch (error) {
-    console.error('❌ Seed error:', error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error during seeding'
-    });
-  }
-});
 
 // API routes
 app.use('/api/users', userRoutes);
+app.use('/api/migrations', migrationRoutes);
+app.use('/api/seeds', seedRoutes);
 
 // Basic API routes
 app.get('/api', (req, res) => {
@@ -145,5 +67,6 @@ app.use('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 moviGo API server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔧 Migration endpoints available with secret password`);
+  console.log(`🔧 Migration endpoints: http://localhost:${PORT}/api/migrations`);
+  console.log(`🌱 Seed endpoints: http://localhost:${PORT}/api/seeds`);
 });

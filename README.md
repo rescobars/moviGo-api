@@ -75,10 +75,16 @@ Express server with TypeScript, Knex, and PostgreSQL for the moviGo application.
 - `GET /api/users` - Get all users
 - `GET /api/users/:id` - Get user by ID
 
-### Secret Endpoints (require password)
-- `POST /secret/run-migrations` - Run migrations
-- `GET /secret/migration-status` - Check migration status
-- `POST /secret/run-seeds` - Run seeds
+### Migration Endpoints (require API key)
+- `POST /api/migrations/run` - Run all pending migrations
+- `GET /api/migrations/status` - Check migration status
+- `POST /api/migrations/rollback` - Rollback last migration
+- `POST /api/migrations/rollback-all` - Rollback all migrations
+
+### Seed Endpoints (require API key)
+- `POST /api/seeds/run` - Run all seeds
+- `POST /api/seeds/run-specific` - Run specific seed file
+- `GET /api/seeds/list` - List available seed files
 
 ## Database Migrations
 
@@ -110,6 +116,27 @@ Seed files are stored in the `seeds/` directory and are used to populate the dat
 npm run seed
 ```
 
+## API Key Authentication
+
+The migration and seed endpoints require an API key for security. You can provide the API key in several ways:
+
+### Headers
+```bash
+curl -X POST http://localhost:3000/api/migrations/run \
+  -H "x-api-key: your-api-key-here"
+```
+
+### Query Parameter
+```bash
+curl -X POST "http://localhost:3000/api/migrations/run?apiKey=your-api-key-here"
+```
+
+### Environment Variable
+Set `API_KEY_MIGRATIONS` in your `.env` file:
+```
+API_KEY_MIGRATIONS=your-secure-api-key-here
+```
+
 ## Environment Variables
 
 See `env.example` for all available environment variables:
@@ -118,7 +145,7 @@ See `env.example` for all available environment variables:
 - `JWT_SECRET` - JWT signing secret
 - `PORT` - Server port (default: 3000)
 - `NODE_ENV` - Environment (development/production)
-- `SECRET_PASSWORD` - Password for secret endpoints
+- `API_KEY_MIGRATIONS` - API key for migration and seed endpoints
 
 ## Project Structure
 
