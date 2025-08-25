@@ -8,7 +8,7 @@ export async function seed(knex: Knex): Promise<void> {
   await knex('organizations').insert([
     {
       id: 1,
-      uuid: '550e8400-e29b-41d4-a716-446655440011',
+      uuid: knex.raw('gen_random_uuid()'),
       name: 'Restaurante El Buen Sabor',
       description: 'Restaurante de comida tradicional con delivery',
       domain: 'elbuensabor.com',
@@ -24,7 +24,7 @@ export async function seed(knex: Knex): Promise<void> {
     },
     {
       id: 2,
-      uuid: '550e8400-e29b-41d4-a716-446655440021',
+      uuid: knex.raw('gen_random_uuid()'),
       name: 'Pizza Express',
       description: 'Pizzería con delivery rápido y eficiente',
       domain: 'pizzaexpress.gt',
@@ -40,7 +40,7 @@ export async function seed(knex: Knex): Promise<void> {
     },
     {
       id: 3,
-      uuid: '550e8400-e29b-41d4-a716-446655440031',
+      uuid: knex.raw('gen_random_uuid()'),
       name: 'Café Central',
       description: 'Café artesanal con servicio de delivery',
       domain: 'cafecentral.gt',
@@ -56,7 +56,7 @@ export async function seed(knex: Knex): Promise<void> {
     },
     {
       id: 4,
-      uuid: '550e8400-e29b-41d4-a716-446655440041',
+      uuid: knex.raw('gen_random_uuid()'),
       name: 'Sushi Master',
       description: 'Restaurante de sushi premium con delivery',
       domain: 'sushimaster.gt',
@@ -69,6 +69,22 @@ export async function seed(knex: Knex): Promise<void> {
       is_active: true,
       plan_type: 'ENTERPRISE',
       subscription_expires_at: new Date('2026-12-31'),
+    },
+    {
+      id: 5,
+      uuid: knex.raw('gen_random_uuid()'),
+      name: 'moviGo Platform',
+      description: 'Plataforma principal de moviGo',
+      domain: 'movigo.com',
+      logo_url: 'https://example.com/logos/movigo.png',
+      website_url: 'https://movigo.com',
+      contact_email: 'admin@movigo.com',
+      contact_phone: '+502 5000-0000',
+      address: 'Centro de Innovación, Zona 4, Ciudad de Guatemala',
+      status: 'ACTIVE',
+      is_active: true,
+      plan_type: 'ENTERPRISE',
+      subscription_expires_at: new Date('2030-12-31'),
     },
   ]);
 }

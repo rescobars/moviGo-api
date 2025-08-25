@@ -9,7 +9,7 @@ export async function seed(knex: Knex): Promise<void> {
     // El Buen Sabor - Roles
     {
       id: 1,
-      uuid: '550e8400-e29b-41d4-a716-446655440401',
+      uuid: knex.raw('gen_random_uuid()'),
       organization_member_id: 1, // María García
       role_name: 'OWNER',
       description: 'Propietaria del restaurante con acceso completo',
@@ -20,12 +20,14 @@ export async function seed(knex: Knex): Promise<void> {
         drivers: { create: true, read: true, update: true, delete: true, assign: true },
         customers: { create: true, read: true, update: true, delete: true },
         reports: { read: true, export: true },
-        settings: { read: true, update: true }
+        settings: { read: true, update: true },
+        billing: { read: true, update: true },
+        analytics: { read: true, export: true }
       }),
     },
     {
       id: 2,
-      uuid: '550e8400-e29b-41d4-a716-446655440411',
+      uuid: knex.raw('gen_random_uuid()'),
       organization_member_id: 2, // Carlos López
       role_name: 'ADMIN',
       description: 'Administrador con acceso completo excepto configuración',
@@ -36,12 +38,14 @@ export async function seed(knex: Knex): Promise<void> {
         drivers: { create: true, read: true, update: true, delete: true, assign: true },
         customers: { create: true, read: true, update: true, delete: true },
         reports: { read: true, export: true },
-        settings: { read: true, update: false }
+        settings: { read: true, update: false },
+        billing: { read: true, update: false },
+        analytics: { read: true, export: true }
       }),
     },
     {
       id: 3,
-      uuid: '550e8400-e29b-41d4-a716-446655440421',
+      uuid: knex.raw('gen_random_uuid()'),
       organization_member_id: 3, // Ana Martínez
       role_name: 'ORDER_MANAGER',
       description: 'Gestora de pedidos con acceso a pedidos y clientes',
@@ -52,14 +56,34 @@ export async function seed(knex: Knex): Promise<void> {
         drivers: { create: false, read: true, update: false, delete: false, assign: true },
         customers: { create: true, read: true, update: true, delete: false },
         reports: { read: true, export: false },
-        settings: { read: false, update: false }
+        settings: { read: false, update: false },
+        billing: { read: false, update: false },
+        analytics: { read: true, export: false }
+      }),
+    },
+    {
+      id: 10,
+      uuid: knex.raw('gen_random_uuid()'),
+      organization_member_id: 10, // Driver 1
+      role_name: 'DRIVER',
+      description: 'Conductor con acceso a pedidos asignados',
+      status: 'ACTIVE',
+      is_active: true,
+      permissions: JSON.stringify({
+        orders: { create: false, read: true, update: true, delete: false, assign: false },
+        drivers: { create: false, read: false, update: false, delete: false, assign: false },
+        customers: { create: false, read: true, update: false, delete: false },
+        reports: { read: false, export: false },
+        settings: { read: false, update: false },
+        billing: { read: false, update: false },
+        analytics: { read: false, export: false }
       }),
     },
 
     // Pizza Express - Roles
     {
       id: 4,
-      uuid: '550e8400-e29b-41d4-a716-446655440431',
+      uuid: knex.raw('gen_random_uuid()'),
       organization_member_id: 4, // Juan Rodríguez
       role_name: 'OWNER',
       description: 'Propietario de Pizza Express',
@@ -70,12 +94,14 @@ export async function seed(knex: Knex): Promise<void> {
         drivers: { create: true, read: true, update: true, delete: true, assign: true },
         customers: { create: true, read: true, update: true, delete: true },
         reports: { read: true, export: true },
-        settings: { read: true, update: true }
+        settings: { read: true, update: true },
+        billing: { read: true, update: true },
+        analytics: { read: true, export: true }
       }),
     },
     {
       id: 5,
-      uuid: '550e8400-e29b-41d4-a716-446655440441',
+      uuid: knex.raw('gen_random_uuid()'),
       organization_member_id: 5, // Lucía Hernández
       role_name: 'MANAGER',
       description: 'Supervisora de operaciones',
@@ -86,14 +112,34 @@ export async function seed(knex: Knex): Promise<void> {
         drivers: { create: false, read: true, update: true, delete: false, assign: true },
         customers: { create: true, read: true, update: true, delete: false },
         reports: { read: true, export: true },
-        settings: { read: true, update: false }
+        settings: { read: true, update: false },
+        billing: { read: true, update: false },
+        analytics: { read: true, export: true }
+      }),
+    },
+    {
+      id: 11,
+      uuid: knex.raw('gen_random_uuid()'),
+      organization_member_id: 11, // Driver 2
+      role_name: 'DRIVER',
+      description: 'Conductor con acceso a pedidos asignados',
+      status: 'ACTIVE',
+      is_active: true,
+      permissions: JSON.stringify({
+        orders: { create: false, read: true, update: true, delete: false, assign: false },
+        drivers: { create: false, read: false, update: false, delete: false, assign: false },
+        customers: { create: false, read: true, update: false, delete: false },
+        reports: { read: false, export: false },
+        settings: { read: false, update: false },
+        billing: { read: false, update: false },
+        analytics: { read: false, export: false }
       }),
     },
 
     // Café Central - Roles
     {
       id: 6,
-      uuid: '550e8400-e29b-41d4-a716-446655440451',
+      uuid: knex.raw('gen_random_uuid()'),
       organization_member_id: 6, // Pedro Gómez
       role_name: 'OWNER',
       description: 'Propietario del Café Central',
@@ -104,12 +150,14 @@ export async function seed(knex: Knex): Promise<void> {
         drivers: { create: true, read: true, update: true, delete: true, assign: true },
         customers: { create: true, read: true, update: true, delete: true },
         reports: { read: true, export: true },
-        settings: { read: true, update: true }
+        settings: { read: true, update: true },
+        billing: { read: true, update: true },
+        analytics: { read: true, export: true }
       }),
     },
     {
       id: 7,
-      uuid: '550e8400-e29b-41d4-a716-446655440461',
+      uuid: knex.raw('gen_random_uuid()'),
       organization_member_id: 7, // Carmen Vargas
       role_name: 'CUSTOMER_SERVICE',
       description: 'Barista con acceso a pedidos y clientes',
@@ -120,14 +168,16 @@ export async function seed(knex: Knex): Promise<void> {
         drivers: { create: false, read: true, update: false, delete: false, assign: false },
         customers: { create: true, read: true, update: true, delete: false },
         reports: { read: false, export: false },
-        settings: { read: false, update: false }
+        settings: { read: false, update: false },
+        billing: { read: false, update: false },
+        analytics: { read: false, export: false }
       }),
     },
 
     // Sushi Master - Roles
     {
       id: 8,
-      uuid: '550e8400-e29b-41d4-a716-446655440471',
+      uuid: knex.raw('gen_random_uuid()'),
       organization_member_id: 8, // Roberto Silva
       role_name: 'OWNER',
       description: 'Chef ejecutivo y propietario',
@@ -138,12 +188,14 @@ export async function seed(knex: Knex): Promise<void> {
         drivers: { create: true, read: true, update: true, delete: true, assign: true },
         customers: { create: true, read: true, update: true, delete: true },
         reports: { read: true, export: true },
-        settings: { read: true, update: true }
+        settings: { read: true, update: true },
+        billing: { read: true, update: true },
+        analytics: { read: true, export: true }
       }),
     },
     {
       id: 9,
-      uuid: '550e8400-e29b-41d4-a716-446655440481',
+      uuid: knex.raw('gen_random_uuid()'),
       organization_member_id: 9, // Sofía Torres
       role_name: 'ADMIN',
       description: 'Gerente de servicio con acceso administrativo',
@@ -154,47 +206,15 @@ export async function seed(knex: Knex): Promise<void> {
         drivers: { create: true, read: true, update: true, delete: true, assign: true },
         customers: { create: true, read: true, update: true, delete: true },
         reports: { read: true, export: true },
-        settings: { read: true, update: false }
-      }),
-    },
-
-    // Driver Roles
-    {
-      id: 10,
-      uuid: '550e8400-e29b-41d4-a716-446655440491',
-      organization_member_id: 10, // Driver 1 - El Buen Sabor
-      role_name: 'DRIVER',
-      description: 'Conductor con acceso a pedidos asignados',
-      status: 'ACTIVE',
-      is_active: true,
-      permissions: JSON.stringify({
-        orders: { create: false, read: true, update: true, delete: false, assign: false },
-        drivers: { create: false, read: false, update: false, delete: false, assign: false },
-        customers: { create: false, read: true, update: false, delete: false },
-        reports: { read: false, export: false },
-        settings: { read: false, update: false }
-      }),
-    },
-    {
-      id: 11,
-      uuid: '550e8400-e29b-41d4-a716-446655440501',
-      organization_member_id: 11, // Driver 2 - Pizza Express
-      role_name: 'DRIVER',
-      description: 'Conductor con acceso a pedidos asignados',
-      status: 'ACTIVE',
-      is_active: true,
-      permissions: JSON.stringify({
-        orders: { create: false, read: true, update: true, delete: false, assign: false },
-        drivers: { create: false, read: false, update: false, delete: false, assign: false },
-        customers: { create: false, read: true, update: false, delete: false },
-        reports: { read: false, export: false },
-        settings: { read: false, update: false }
+        settings: { read: true, update: false },
+        billing: { read: true, update: false },
+        analytics: { read: true, export: true }
       }),
     },
     {
       id: 12,
-      uuid: '550e8400-e29b-41d4-a716-446655440511',
-      organization_member_id: 12, // Driver 3 - Sushi Master
+      uuid: knex.raw('gen_random_uuid()'),
+      organization_member_id: 12, // Driver 3
       role_name: 'DRIVER',
       description: 'Conductor con acceso a pedidos asignados',
       status: 'ACTIVE',
@@ -204,14 +224,83 @@ export async function seed(knex: Knex): Promise<void> {
         drivers: { create: false, read: false, update: false, delete: false, assign: false },
         customers: { create: false, read: true, update: false, delete: false },
         reports: { read: false, export: false },
-        settings: { read: false, update: false }
+        settings: { read: false, update: false },
+        billing: { read: false, update: false },
+        analytics: { read: false, export: false }
+      }),
+    },
+
+    // moviGo Platform - Admin Roles
+    {
+      id: 13,
+      uuid: knex.raw('gen_random_uuid()'),
+      organization_member_id: 13, // Admin Principal
+      role_name: 'PLATFORM_ADMIN',
+      description: 'Administrador principal de la plataforma',
+      status: 'ACTIVE',
+      is_active: true,
+      permissions: JSON.stringify({
+        orders: { create: true, read: true, update: true, delete: true, assign: true },
+        drivers: { create: true, read: true, update: true, delete: true, assign: true },
+        customers: { create: true, read: true, update: true, delete: true },
+        reports: { read: true, export: true },
+        settings: { read: true, update: true },
+        billing: { read: true, update: true },
+        analytics: { read: true, export: true },
+        organizations: { create: true, read: true, update: true, delete: true },
+        users: { create: true, read: true, update: true, delete: true },
+        system: { read: true, update: true }
+      }),
+    },
+    {
+      id: 14,
+      uuid: knex.raw('gen_random_uuid()'),
+      organization_member_id: 14, // Super Admin
+      role_name: 'SUPER_ADMIN',
+      description: 'Super administrador con acceso completo al sistema',
+      status: 'ACTIVE',
+      is_active: true,
+      permissions: JSON.stringify({
+        orders: { create: true, read: true, update: true, delete: true, assign: true },
+        drivers: { create: true, read: true, update: true, delete: true, assign: true },
+        customers: { create: true, read: true, update: true, delete: true },
+        reports: { read: true, export: true },
+        settings: { read: true, update: true },
+        billing: { read: true, update: true },
+        analytics: { read: true, export: true },
+        organizations: { create: true, read: true, update: true, delete: true },
+        users: { create: true, read: true, update: true, delete: true },
+        system: { read: true, update: true },
+        security: { read: true, update: true },
+        logs: { read: true, export: true }
+      }),
+    },
+    {
+      id: 15,
+      uuid: knex.raw('gen_random_uuid()'),
+      organization_member_id: 15, // Manager
+      role_name: 'PLATFORM_MANAGER',
+      description: 'Gerente de la plataforma con acceso administrativo',
+      status: 'ACTIVE',
+      is_active: true,
+      permissions: JSON.stringify({
+        orders: { create: true, read: true, update: true, delete: false, assign: true },
+        drivers: { create: true, read: true, update: true, delete: false, assign: true },
+        customers: { create: true, read: true, update: true, delete: false },
+        reports: { read: true, export: true },
+        settings: { read: true, update: false },
+        billing: { read: true, update: false },
+        analytics: { read: true, export: true },
+        organizations: { create: false, read: true, update: false, delete: false },
+        users: { create: false, read: true, update: false, delete: false },
+        system: { read: false, update: false }
       }),
     },
 
     // Multiple roles for some members (example: María García also has MANAGER role)
     {
-      id: 13,
-      uuid: '550e8400-e29b-41d4-a716-446655440521',
+      id: 16,
+      uuid: knex.raw('gen_random_uuid()'),
       organization_member_id: 1, // María García
       role_name: 'MANAGER',
       description: 'Rol adicional de gerente',
@@ -222,7 +311,9 @@ export async function seed(knex: Knex): Promise<void> {
         drivers: { create: false, read: true, update: true, delete: false, assign: true },
         customers: { create: true, read: true, update: true, delete: false },
         reports: { read: true, export: true },
-        settings: { read: true, update: false }
+        settings: { read: true, update: false },
+        billing: { read: true, update: false },
+        analytics: { read: true, export: true }
       }),
     },
   ]);
