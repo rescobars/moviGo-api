@@ -1,0 +1,31 @@
+{
+  "name": "movigo-api",
+  "description": "Express server with TypeScript, Knex, and PostgreSQL for the moviGo application",
+  "repository": "https://github.com/rescobars/moviGo-api",
+  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "keywords": ["node", "express", "typescript", "postgresql", "knex"],
+  "env": {
+    "NODE_ENV": {
+      "description": "Environment",
+      "value": "production"
+    },
+    "API_KEY_MIGRATIONS": {
+      "description": "API key for migration endpoints",
+      "generator": "secret"
+    },
+    "JWT_SECRET": {
+      "description": "JWT signing secret",
+      "generator": "secret"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:mini"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}

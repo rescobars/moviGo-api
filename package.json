@@ -18,7 +18,8 @@
     "migrate:status": "tsx -r tsx/register node_modules/.bin/knex migrate:status",
     "seed": "tsx -r tsx/register node_modules/.bin/knex seed:run",
     "build:packages": "npm run build --workspaces",
-    "dev:packages": "npm run dev --workspaces"
+    "dev:packages": "npm run dev --workspaces",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "@movigo/auth": "workspace:*",
