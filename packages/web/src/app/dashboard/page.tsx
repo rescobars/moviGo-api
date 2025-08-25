@@ -5,15 +5,19 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { DashboardLayout } from '@/components/layouts/DashboardLayout';
+import { StatCard } from '@/components/ui/StatCard';
 import { 
   Users, 
   Plus, 
-  LogOut, 
-  User, 
   Building2, 
   Mail,
   CheckCircle,
-  XCircle
+  XCircle,
+  BarChart3,
+  TrendingUp,
+  Package,
+  Truck
 } from 'lucide-react';
 import { apiService } from '@/lib/api';
 import { InviteMemberFormData } from '@/types';
@@ -77,48 +81,66 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Building2 className="w-8 h-8 text-primary-600 mr-3" />
-              <h1 className="text-xl font-semibold text-gray-900">moviGo</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <User className="w-4 h-4 text-gray-500" />
-                <span className="text-sm text-gray-700">{user.name}</span>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={logout}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Salir
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <DashboardLayout user={user} onLogout={logout}>
+      {/* Welcome Section */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Bienvenido, {user.name}
+        </h1>
+        <p className="text-gray-600">
+          Aquí tienes un resumen de tu actividad y organizaciones
+        </p>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Bienvenido, {user.name}
-          </h2>
-          <p className="text-gray-600">
-            Gestiona tus organizaciones y miembros desde aquí
-          </p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <StatCard
+          icon={Building2}
+          title="Organizaciones"
+          value={sessionData?.organizations?.length || 0}
+          iconColor="text-blue-600"
+          iconBgColor="bg-blue-100"
+        />
+
+        <StatCard
+          icon={Users}
+          title="Miembros"
+          value="12"
+          iconColor="text-green-600"
+          iconBgColor="bg-green-100"
+        />
+
+        <StatCard
+          icon={Truck}
+          title="Conductores"
+          value="8"
+          iconColor="text-purple-600"
+          iconBgColor="bg-purple-100"
+        />
+
+        <StatCard
+          icon={Package}
+          title="Pedidos Hoy"
+          value="24"
+          iconColor="text-orange-600"
+          iconBgColor="bg-orange-100"
+        />
+      </div>
+
+      {/* Organizations Section */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-900">Tus Organizaciones</h2>
+          <Button
+            onClick={() => setShowInviteForm(true)}
+            className="hidden md:flex"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Invitar Miembro
+          </Button>
         </div>
 
-        {/* Organizations Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sessionData?.organizations?.map((org) => (
             <Card key={org.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
@@ -128,7 +150,7 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center text-sm text-gray-600">
                     <Users className="w-4 h-4 mr-2" />
                     Roles: {org.roles.join(', ')}
@@ -136,7 +158,7 @@ export default function DashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full"
+                    className="w-full md:hidden"
                     onClick={() => setShowInviteForm(true)}
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -148,9 +170,33 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Invite Member Form */}
-        {showInviteForm && (
-          <Card className="max-w-md mx-auto">
+        {/* No Organizations Message */}
+        {(!sessionData?.organizations || sessionData.organizations.length === 0) && (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No tienes organizaciones
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Aún no has sido agregado a ninguna organización.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => setShowInviteForm(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Crear Organización
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Invite Member Form */}
+      {showInviteForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Mail className="w-5 h-5 text-primary-600 mr-2" />
@@ -218,30 +264,8 @@ export default function DashboardPage() {
               </form>
             </CardContent>
           </Card>
-        )}
-
-        {/* No Organizations Message */}
-        {(!sessionData?.organizations || sessionData.organizations.length === 0) && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No tienes organizaciones
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Aún no has sido agregado a ninguna organización.
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => setShowInviteForm(true)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Crear Organización
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </main>
-    </div>
+        </div>
+      )}
+    </DashboardLayout>
   );
 }
