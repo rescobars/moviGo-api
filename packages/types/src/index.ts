@@ -30,3 +30,6 @@ export interface MigrationStatus {
 // Export all schemas
 export * from './schemas/user';
 export * from './schemas/auth-token';
+export * from './schemas/organization';
+export * from './schemas/organization-member';
+export * from './schemas/member-role';
