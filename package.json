@@ -2,8 +2,11 @@
   "name": "movigo-api",
   "version": "1.0.0",
   "type": "module",
-  "description": "Express server with tRPC using Knex for moviGo API",
+  "description": "Express server with TypeScript, Knex, and PostgreSQL for the moviGo application",
   "main": "dist/index.js",
+  "workspaces": [
+    "packages/*"
+  ],
   "engines": {
     "node": "22.x",
     "npm": "10.x"
@@ -15,9 +18,15 @@
     "clean": "rm -rf dist",
     "migrate": "tsx -r tsx/register node_modules/.bin/knex migrate:latest",
     "migrate:status": "tsx -r tsx/register node_modules/.bin/knex migrate:status",
-    "seed": "tsx -r tsx/register node_modules/.bin/knex seed:run"
+    "seed": "tsx -r tsx/register node_modules/.bin/knex seed:run",
+    "build:packages": "npm run build --workspaces",
+    "dev:packages": "npm run dev --workspaces"
   },
   "dependencies": {
+    "@movigo/auth": "workspace:*",
+    "@movigo/database": "workspace:*",
+    "@movigo/api": "workspace:*",
+    "@movigo/types": "workspace:*",
     "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",

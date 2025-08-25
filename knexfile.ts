@@ -1,3 +1,3 @@
-import dbConfig from './src/db-config';
+import dbConfig from './packages/database/src/db-config';
 
 export default dbConfig;

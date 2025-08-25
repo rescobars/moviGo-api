@@ -31,6 +31,11 @@ Express server with TypeScript, Knex, and PostgreSQL for the moviGo application.
    npm install
    ```
 
+3. **Build packages (optional)**
+   ```bash
+   npm run build:packages
+   ```
+
 3. **Environment configuration**
    ```bash
    cp env.example .env
@@ -64,6 +69,8 @@ Express server with TypeScript, Knex, and PostgreSQL for the moviGo application.
 - `npm run migrate:status` - Check migration status
 - `npm run seed` - Run database seeds
 - `npm run clean` - Clean build directory
+- `npm run build:packages` - Build all packages
+- `npm run dev:packages` - Watch all packages for changes
 
 ## API Endpoints
 
@@ -151,18 +158,36 @@ See `env.example` for all available environment variables:
 
 ```
 src/
-├── config/          # Configuration files
-├── db-config.ts     # Database configuration
-├── index.ts         # Main server file
-├── middleware/      # Express middleware
-├── repositories/    # Data access layer
-├── routes/          # API routes
-├── services/        # Business logic
-└── types/           # TypeScript type definitions
+└── index.ts         # Main server file
 
-src/db/
-├── migrations/     # Database migrations
-└── seeds/         # Database seeds
+packages/
+├── auth/            # Authentication package
+│   ├── src/
+│   │   ├── jwt.ts   # JWT utilities
+│   │   ├── auth.ts  # Auth middleware
+│   │   └── index.ts
+│   ├── package.json
+│   └── tsconfig.json
+├── database/        # Database package
+│   ├── src/
+│   │   ├── db-config.ts    # Database configuration
+│   │   ├── migrations/     # Database migrations
+│   │   ├── seeds/         # Database seeds
+│   │   ├── repositories/  # Data access layer
+│   │   └── index.ts
+│   ├── package.json
+│   └── tsconfig.json
+├── api/             # API package
+│   ├── src/
+│   │   ├── routes/  # API routes
+│   │   └── index.ts
+│   ├── package.json
+│   └── tsconfig.json
+└── types/           # Types package
+    ├── src/
+    │   └── index.ts # TypeScript type definitions
+    ├── package.json
+    └── tsconfig.json
 ```
 
 ## Deployment

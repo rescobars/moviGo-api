@@ -2,10 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { db } from './db-config';
-import userRoutes from './routes/users';
-import migrationRoutes from './routes/migrations';
-import seedRoutes from './routes/seeds';
+import { db } from '@movigo/database';
+import { userRoutes, migrationRoutes, seedRoutes } from '@movigo/api';
 
 const app = express();
 const PORT = process.env.PORT || 3000;

@@ -13,11 +13,11 @@ const config = {
     client: 'postgresql',
     connection: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/movigo_dev',
     migrations: {
-      directory: './src/db/migrations',
+      directory: './packages/database/src/migrations',
       extension: 'ts',
     },
     seeds: {
-      directory: './src/db/seeds',
+      directory: './packages/database/src/seeds',
       extension: 'ts',
     },
     pool: {
@@ -29,11 +29,11 @@ const config = {
     client: 'postgresql',
     connection: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/movigo_test',
     migrations: {
-      directory: './src/db/migrations',
+      directory: './packages/database/src/migrations',
       extension: 'ts',
     },
     seeds: {
-      directory: './src/db/seeds',
+      directory: './packages/database/src/seeds',
       extension: 'ts',
     },
     pool: {
@@ -48,11 +48,11 @@ const config = {
       ssl: { rejectUnauthorized: false }
     },
     migrations: {
-      directory: './src/db/migrations',
+      directory: './packages/database/src/migrations',
       extension: 'ts',
     },
     seeds: {
-      directory: './src/db/seeds',
+      directory: './packages/database/src/seeds',
       extension: 'ts',
     },
     pool: {
