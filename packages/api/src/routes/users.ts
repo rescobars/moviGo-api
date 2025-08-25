@@ -1,57 +1,19 @@
 import { Router } from 'express';
-import { authMiddleware, AuthenticatedRequest } from '../../../auth/src/auth';
-import { db } from '../../../database/src/db-config';
+import { authMiddleware } from '../../../auth/src/auth';
+import { UserController } from '../controllers/users.controller';
 
 const router: Router = Router();
 
-// GET /api/users - Get all users (protected)
-router.get('/', authMiddleware, async (req: AuthenticatedRequest, res) => {
-  try {
-    const users = await db('users')
-      .select('id', 'email', 'name', 'is_active', 'created_at', 'updated_at')
-      .where('is_active', true);
+// Public routes (no authentication required)
+router.post('/login', UserController.login);
+router.post('/register', UserController.create);
 
-    res.json({
-      success: true,
-      data: users
-    });
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch users'
-    });
-  }
-});
-
-// GET /api/users/:id - Get user by ID (protected)
-router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res) => {
-  try {
-    const { id } = req.params;
-    
-    const user = await db('users')
-      .select('id', 'email', 'name', 'is_active', 'created_at', 'updated_at')
-      .where({ id, is_active: true })
-      .first();
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: user
-    });
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch user'
-    });
-  }
-});
+// Protected routes (authentication required)
+router.get('/', authMiddleware, UserController.getAll);
+router.get('/:id', authMiddleware, UserController.getById);
+router.get('/uuid/:uuid', authMiddleware, UserController.getByUuid);
+router.put('/:id', authMiddleware, UserController.update);
+router.delete('/:id', authMiddleware, UserController.delete);
+router.patch('/:id/status', authMiddleware, UserController.updateStatus);
 
 export default router;

@@ -1,26 +1,39 @@
 import { Knex } from 'knex';
-import { User } from '../../../types/src/index';
+import { User, CreateUser, UpdateUser } from '../../../types/src/schemas/user';
 
 export class UserRepository {
-  constructor(private db: Knex) {}
+  private static db: Knex;
 
-  async findAll(): Promise<User[]> {
-    return this.db('users')
-      .select('id', 'email', 'name', 'created_at', 'updated_at')
+  static setDb(database: Knex) {
+    UserRepository.db = database;
+  }
+
+  static async findAll(): Promise<User[]> {
+    return UserRepository.db('users')
+      .select('*')
       .where('is_active', true);
   }
 
-  async findById(id: string): Promise<User | null> {
-    const user = await this.db('users')
-      .select('id', 'email', 'name', 'created_at', 'updated_at')
+  static async findById(id: string): Promise<User | null> {
+    const user = await UserRepository.db('users')
+      .select('*')
       .where({ id, is_active: true })
       .first();
     
     return user || null;
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    const user = await this.db('users')
+  static async findByUuid(uuid: string): Promise<User | null> {
+    const user = await UserRepository.db('users')
+      .select('*')
+      .where({ uuid, is_active: true })
+      .first();
+    
+    return user || null;
+  }
+
+  static async findByEmail(email: string): Promise<User | null> {
+    const user = await UserRepository.db('users')
       .select('*')
       .where({ email, is_active: true })
       .first();
@@ -28,28 +41,37 @@ export class UserRepository {
     return user || null;
   }
 
-  async create(userData: Omit<User, 'id' | 'created_at' | 'updated_at'> & { password_hash: string }): Promise<User> {
-    const [user] = await this.db('users')
+  static async create(userData: CreateUser & { password_hash: string }): Promise<User> {
+    const [user] = await UserRepository.db('users')
       .insert(userData)
-      .returning(['id', 'email', 'name', 'created_at', 'updated_at']);
+      .returning('*');
     
     return user;
   }
 
-  async update(id: string, userData: Partial<User>): Promise<User | null> {
-    const [user] = await this.db('users')
+  static async update(id: string, userData: UpdateUser): Promise<User | null> {
+    const [user] = await UserRepository.db('users')
       .where({ id })
-      .update({ ...userData, updated_at: this.db.fn.now() })
-      .returning(['id', 'email', 'name', 'created_at', 'updated_at']);
+      .update({ ...userData, updated_at: UserRepository.db.fn.now() })
+      .returning('*');
     
     return user || null;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.db('users')
+  static async delete(id: string): Promise<boolean> {
+    const result = await UserRepository.db('users')
       .where({ id })
-      .update({ is_active: false, updated_at: this.db.fn.now() });
+      .update({ is_active: false, updated_at: UserRepository.db.fn.now() });
     
     return result > 0;
+  }
+
+  static async updateStatus(id: string, status: string): Promise<User | null> {
+    const [user] = await UserRepository.db('users')
+      .where({ id })
+      .update({ status, updated_at: UserRepository.db.fn.now() })
+      .returning('*');
+    
+    return user || null;
   }
 }

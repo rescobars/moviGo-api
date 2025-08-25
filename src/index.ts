@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { db } from '../packages/database/src/db-config';
 import { userRoutes, migrationRoutes, seedRoutes } from '../packages/api/src/routes';
+import { UserRepository } from '../packages/database/src/repositories/user-repository';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,6 +23,9 @@ app.use((req, res, next) => {
   (req as any).knex = db;
   next();
 });
+
+// Initialize repositories with database connection
+UserRepository.setDb(db);
 
 // Health check (public)
 app.get('/health', (req, res) => {

@@ -17,18 +17,8 @@ export interface ApiResponse<T = any> {
   message?: string;
 }
 
-// User types
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
 // Database table types
 export interface DatabaseTables {
-  users: User;
   // Add more tables as needed
 }
 
@@ -36,3 +26,6 @@ export interface DatabaseTables {
 export interface MigrationStatus {
   [key: string]: number;
 }
+
+// Export all schemas
+export * from './schemas/user';
