@@ -96,8 +96,10 @@ export class UserController {
       
       // Create user data
       const userData = {
-        ...validatedData,
-        password_hash: passwordHash
+        email: validatedData.email,
+        name: validatedData.name,
+        password_hash: passwordHash,
+        status: 'ACTIVE'
       };
 
       const user = await UserRepository.create(userData);

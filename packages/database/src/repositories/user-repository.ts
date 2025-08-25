@@ -41,7 +41,7 @@ export class UserRepository {
     return user || null;
   }
 
-  static async create(userData: CreateUser & { password_hash: string }): Promise<User> {
+  static async create(userData: Omit<CreateUser, 'password'> & { password_hash: string }): Promise<User> {
     const [user] = await UserRepository.db('users')
       .insert(userData)
       .returning('*');
