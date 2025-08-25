@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { db } from '../packages/database/src/db-config';
-import { userRoutes, authRoutes, migrationRoutes, seedRoutes } from '../packages/api/src/routes';
+import { userRoutes, authRoutes, migrationRoutes, seedRoutes, organizationMemberRoutes } from '../packages/api/src/routes';
 import { UserRepository } from '../packages/database/src/repositories/user-repository';
 import { AuthTokenRepository } from '../packages/database/src/repositories/auth-token.repository';
 
@@ -41,6 +41,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/migrations', migrationRoutes);
 app.use('/api/seeds', seedRoutes);
+app.use('/api/organization-members', organizationMemberRoutes);
 
 // Basic API routes
 app.get('/api', (req, res) => {
