@@ -26,7 +26,7 @@ export class EmailService {
   static async sendPasswordlessLoginToken(email: string, token: string, verificationCode: string): Promise<boolean> {
     try {
       // In development, redirect all emails to the configured development email
-      const targetEmail = process.env.NODE_ENV === 'development' && process.env.DEV_EMAIL 
+      const targetEmail = (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'production') && process.env.DEV_EMAIL 
         ? process.env.DEV_EMAIL 
         : email;
       
@@ -86,7 +86,7 @@ export class EmailService {
 
       const { data, error } = await resend.emails.send({
         from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
-        to: [targetEmail],
+        to: [targetEmail || ''],
         subject: '🔑 Tu código de acceso moviGo',
         html: this.getEmailTemplate('¡Hola! 👋', emailContent)
       });
