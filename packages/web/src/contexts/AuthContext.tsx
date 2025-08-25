@@ -60,6 +60,7 @@ interface AuthContextType extends AuthState {
   login: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   verifyToken: (token: string) => Promise<void>;
+  verifyCode: (code: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -170,6 +171,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Función de verificación de código
+  const verifyCode = async (code: string) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    
+    try {
+      const response = await apiService.verifyPasswordlessCode(code);
+      if (response.success && response.data) {
+        // Guardar tokens en localStorage
+        localStorage.setItem('accessToken', response.data.access_token);
+        localStorage.setItem('refreshToken', response.data.refresh_token);
+        
+        dispatch({ type: 'LOGIN_SUCCESS', payload: response.data });
+      } else {
+        throw new Error(response.error || 'Code verification failed');
+      }
+    } catch (error) {
+      dispatch({ type: 'SET_LOADING', payload: false });
+      throw error;
+    }
+  };
+
   // Función de logout
   const logout = async () => {
     try {
@@ -191,6 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     verifyToken,
+    verifyCode,
   };
 
   return (

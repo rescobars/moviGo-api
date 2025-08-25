@@ -12,6 +12,7 @@ export const AuthTokenSchema = z.object({
   uuid: z.string().uuid(),
   user_id: z.number().int().positive(),
   token: z.string(),
+  verification_code: z.string().length(6).nullable(),
   type: AuthTokenTypeEnum,
   status: AuthTokenStatusEnum,
   expires_at: z.date(),
@@ -24,7 +25,8 @@ export const AuthTokenSchema = z.object({
 export const CreateAuthTokenSchema = z.object({
   user_id: z.number().int().positive(),
   type: AuthTokenTypeEnum,
-  expires_at: z.date()
+  expires_at: z.date(),
+  verification_code: z.string().length(6).optional()
 });
 
 // Schema for passwordless login request

@@ -23,7 +23,7 @@ export class EmailService {
       </div>
     `;
   }
-  static async sendPasswordlessLoginToken(email: string, token: string): Promise<boolean> {
+  static async sendPasswordlessLoginToken(email: string, token: string, verificationCode: string): Promise<boolean> {
     try {
       // In development, redirect all emails to the configured development email
       const targetEmail = process.env.NODE_ENV === 'development' && process.env.DEV_EMAIL 
@@ -35,19 +35,33 @@ export class EmailService {
       if (!process.env.RESEND_API_KEY) {
         console.log('⚠️ RESEND_API_KEY not configured, skipping email send');
         console.log(`🔑 Token: ${token}`);
-        console.log(`🌐 Login URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/api/auth/passwordless/verify?token=${token}`);
+        console.log(`🔢 Verification Code: ${verificationCode}`);
+        console.log(`🌐 Login URL: ${process.env.FRONTEND_URL || 'http://localhost:3001'}/verify?token=${token}`);
         return true;
       }
 
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/api/auth/passwordless/verify?token=${token}`;
+      const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/verify?token=${token}`;
 
       const emailContent = `
         <p style="color: #666; line-height: 1.6;">
-          Has solicitado acceder a tu cuenta de moviGo. Usa el siguiente enlace para iniciar sesión de forma segura:
+          Has solicitado acceder a tu cuenta de moviGo. Puedes usar cualquiera de estas opciones para iniciar sesión de forma segura:
         </p>
         
+        <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 20px; margin: 20px 0;">
+          <h3 style="color: #333; margin-top: 0; text-align: center;">🔢 Tu código de verificación</h3>
+          <div style="text-align: center; margin: 20px 0;">
+            <div style="background: #667eea; color: white; font-size: 32px; font-weight: bold; padding: 15px; border-radius: 10px; letter-spacing: 5px; display: inline-block; min-width: 200px;">
+              ${verificationCode}
+            </div>
+          </div>
+          <p style="color: #666; font-size: 14px; text-align: center; margin: 0;">
+            Ingresa este código en la aplicación para acceder a tu cuenta
+          </p>
+        </div>
+        
         <div style="text-align: center; margin: 30px 0;">
+          <p style="color: #666; margin-bottom: 15px;">O usa este enlace directo:</p>
           <a href="${loginUrl}" 
              style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     color: white; 
@@ -57,12 +71,12 @@ export class EmailService {
                     display: inline-block; 
                     font-weight: bold;
                     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-            🔑 Iniciar Sesión
+            🔑 Iniciar Sesión con Enlace
           </a>
         </div>
         
         <p style="color: #666; font-size: 14px; margin-top: 30px;">
-          <strong>⚠️ Importante:</strong> Este enlace es válido por 15 minutos y solo puede ser usado una vez.
+          <strong>⚠️ Importante:</strong> Este código y enlace son válidos por 15 minutos y solo pueden ser usados una vez.
         </p>
         
         <p style="color: #666; font-size: 14px;">

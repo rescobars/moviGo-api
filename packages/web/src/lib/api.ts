@@ -46,6 +46,13 @@ class ApiService {
     });
   }
 
+  async verifyPasswordlessCode(code: string): Promise<ApiResponse<LoginResponse>> {
+    return this.request('/auth/passwordless/verify-code', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+  }
+
   async refreshToken(refreshToken: string): Promise<ApiResponse<{ access_token: string; expires_in: number }>> {
     return this.request('/auth/refresh', {
       method: 'POST',

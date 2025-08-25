@@ -28,20 +28,24 @@ export class AuthController {
       // Generate a secure token
       const token = crypto.randomBytes(32).toString('hex');
       
+      // Generate a 6-digit verification code
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
       // Set expiration (15 minutes from now)
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + 15);
 
-      // Save token to database
+      // Save token to database with verification code
       const authToken = await AuthTokenRepository.create({
         user_id: user.id,
         type: 'PASSWORDLESS_LOGIN',
         expires_at: expiresAt,
-        token
+        token,
+        verification_code: verificationCode // Add verification code to the token
       });
 
-      // Send email with token
-      const emailSent = await EmailService.sendPasswordlessLoginToken(validatedData.email, token);
+      // Send email with both token and verification code
+      const emailSent = await EmailService.sendPasswordlessLoginToken(validatedData.email, token, verificationCode);
       
       if (!emailSent) {
         return res.status(500).json({
@@ -220,6 +224,87 @@ export class AuthController {
       res.status(400).json({
         success: false,
         error: error instanceof Error ? error.message : 'Failed to verify token'
+      });
+    }
+  }
+
+  static async verifyPasswordlessCode(req: Request, res: Response) {
+    try {
+      const { code } = req.body;
+      
+      if (!code || typeof code !== 'string' || code.length !== 6) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid verification code. Must be 6 digits.'
+        });
+      }
+
+      // Find token by verification code
+      const authToken = await AuthTokenRepository.findByVerificationCode(code);
+      
+      if (!authToken) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid or expired verification code'
+        });
+      }
+
+      // Check if token is expired
+      if (new Date() > new Date(authToken.expires_at)) {
+        await AuthTokenRepository.markAsExpired(authToken.token);
+        return res.status(400).json({
+          success: false,
+          error: 'Verification code has expired'
+        });
+      }
+
+      // Check if token is already used
+      if (authToken.status === 'USED') {
+        return res.status(400).json({
+          success: false,
+          error: 'Verification code has already been used'
+        });
+      }
+
+      // Get user
+      const user = await UserRepository.findById(authToken.user_id);
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          error: 'User not found'
+        });
+      }
+
+      // Mark token as used
+      await AuthTokenRepository.markAsUsed(authToken.token);
+
+      // Create session with device information
+      const deviceInfo = SessionService.extractDeviceInfo(req);
+      const session = await SessionService.createSession(user.id, deviceInfo);
+
+      res.json({
+        success: true,
+        message: 'Login successful',
+        data: {
+          user: {
+            id: user.id,
+            uuid: user.uuid,
+            email: user.email,
+            name: user.name,
+            status: user.status
+          },
+          access_token: session.accessToken,
+          refresh_token: session.refreshToken,
+          expires_in: session.expiresIn,
+          session_data: session.sessionData
+        }
+      });
+    } catch (error) {
+      console.error('Error verifying code:', error);
+      res.status(400).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to verify code'
       });
     }
   }

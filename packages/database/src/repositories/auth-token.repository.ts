@@ -21,6 +21,15 @@ export class AuthTokenRepository {
     return authToken || null;
   }
 
+  static async findByVerificationCode(verificationCode: string): Promise<AuthToken | null> {
+    const authToken = await db('auth_tokens')
+      .select('*')
+      .where({ verification_code: verificationCode, is_active: true })
+      .first();
+    
+    return authToken || null;
+  }
+
   static async findByUserIdAndType(userId: number, type: string): Promise<AuthToken[]> {
     return db('auth_tokens')
       .select('*')
