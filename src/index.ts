@@ -3,8 +3,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { db } from '../packages/database/src/db-config';
-import { userRoutes, migrationRoutes, seedRoutes } from '../packages/api/src/routes';
+import { userRoutes, authRoutes, migrationRoutes, seedRoutes } from '../packages/api/src/routes';
 import { UserRepository } from '../packages/database/src/repositories/user-repository';
+import { AuthTokenRepository } from '../packages/database/src/repositories/auth-token.repository';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,7 @@ app.use((req, res, next) => {
 
 // Initialize repositories with database connection
 UserRepository.setDb(db);
+AuthTokenRepository.setDb(db);
 
 // Health check (public)
 app.get('/health', (req, res) => {
@@ -36,6 +38,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/migrations', migrationRoutes);
 app.use('/api/seeds', seedRoutes);
 

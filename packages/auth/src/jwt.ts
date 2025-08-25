@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'movigo-jwt-secret-2024';
-const JWT_EXPIRES_IN = '24h';
+const JWT_EXPIRES_IN = '100y'; // Tokens that never expire (100 years)
 
 export interface JWTPayload {
   userId: string;
