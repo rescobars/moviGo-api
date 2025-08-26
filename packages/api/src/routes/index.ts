@@ -4,3 +4,4 @@ export { default as migrationRoutes } from './migrations';
 export { default as seedRoutes } from './seeds';
 export { default as organizationMemberRoutes } from './organization-members';
 export { default as organizationRoutes } from './organizations';
+export { default as orderRoutes } from './orders';

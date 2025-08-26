@@ -6,3 +6,6 @@ export * from './organization-member';
 export * from './member-role';
 export * from './permission-templates';
 export * from './user-session';
+
+// Order schemas
+export * from './order';
