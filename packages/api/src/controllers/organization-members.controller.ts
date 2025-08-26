@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { OrganizationMemberRepository, UserRepository } from '../../../database/src/repositories/index';
+import { OrganizationMemberRepository, UserRepository, AuthTokenRepository } from '../../../database/src/repositories/index';
 import { CreateOrganizationMemberSchema } from '../../../types/src/schemas/organization-member';
 import { CreateMemberRoleSchema } from '../../../types/src/schemas/member-role';
+import { CreatePasswordlessUserSchema } from '../../../types/src/schemas/user';
 import { EmailService } from '../services/email.service';
 
 export class OrganizationMembersController {
@@ -149,23 +150,28 @@ export class OrganizationMembersController {
     }
   }
 
-  static async inviteMember(req: Request, res: Response) {
+  static async publicCreateWithVerification(req: Request, res: Response) {
     try {
       const { 
-        organization_id, 
+        organization_uuid, 
         email, 
         name, 
-        roles = [], 
-        inviterName = 'Admin'
+        title
       } = req.body;
 
       // Validate required fields
-      if (!organization_id || !email || !name) {
+      if (!organization_uuid || !email || !name) {
         return res.status(400).json({ 
           success: false, 
-          error: 'organization_id, email, and name are required' 
+          error: 'organization_uuid, email, and name are required' 
         });
       }
+
+      // Force DRIVER role for public registration
+      const roles = [{
+        role_name: 'DRIVER',
+        description: 'Conductor de la organización'
+      }];
 
       // Check if user already exists
       const existingUser = await UserRepository.findByEmail(email);
@@ -177,52 +183,68 @@ export class OrganizationMembersController {
         });
       }
 
-      // Generate a random password for the new user
-      const randomPassword = Math.random().toString(36).slice(-8);
-      const passwordHash = await bcrypt.hash(randomPassword, 10);
+      // Get organization by UUID
+      const organization = await OrganizationMemberRepository.getOrganizationByUuid(organization_uuid);
+      if (!organization) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Organization not found' 
+        });
+      }
 
-      // Create user
-      const userData = {
+      // Validate user data
+      const validatedUserData = CreatePasswordlessUserSchema.parse({
         email,
         name,
-        password_hash: passwordHash,
-        status: 'ACTIVE' as const,
-        is_active: true
-      };
+        status: 'INACTIVE'
+      });
 
-      const newUser = await UserRepository.create(userData);
+      // Create user and member with roles using transaction
+      const result = await OrganizationMemberRepository.createUserAndMemberWithTransaction({
+        organization_id: organization.id,
+        userData: {
+          ...validatedUserData,
+          password_hash: null, // Passwordless login
+          is_active: true
+        },
+        memberData: {
+          title,
+          status: 'INACTIVE' as const
+        },
+        roles
+      });
 
-      // Create member with roles using transaction
-      const memberData = {
-        organization_id,
-        user_id: newUser.id,
-        status: 'PENDING' as const
-      };
-
-      const result = await OrganizationMemberRepository.createMemberWithRoles(memberData, roles);
-
-      // Send invitation email
-      const invitationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/organizations/join?memberId=${result.member.uuid}`;
-      const roleNames = roles.map((role: any) => role.role_name);
+      // Generate verification code and save to database
+      const verificationCode = Math.random().toString().slice(2, 8); // 6-digit code
       
-      const emailSent = await EmailService.sendOrganizationInvitation(
+      // Save verification code to auth_tokens table
+      await AuthTokenRepository.create({
+        user_id: result.user.id,
+        type: 'EMAIL_VERIFICATION',
+        token: verificationCode, // Use verification code as token
+        verification_code: verificationCode,
+        expires_at: new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
+      });
+
+      // Send verification email
+      const emailSent = await EmailService.sendEmailVerification(
         email,
-        'Organization', // TODO: Get actual organization name
-        inviterName,
-        roleNames,
-        invitationUrl
+        name,
+        verificationCode
       );
 
       res.status(201).json({ 
         success: true, 
         data: {
+          user: result.user,
           member: result.member,
-          invitation_url: invitationUrl
+          roles: result.roles,
+          emailSent
         },
-        message: 'Invitation sent successfully' 
+        message: 'Member created successfully. Please check your email for verification code.' 
       });
     } catch (error: any) {
-      console.error('❌ Error inviting member:', error);
+      console.error('❌ Error creating member with verification:', error);
       res.status(400).json({ success: false, error: error.message });
     }
   }

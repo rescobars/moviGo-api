@@ -214,6 +214,113 @@ router.post('/', authMiddleware, OrganizationMembersController.createMember);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/invite', authMiddleware, OrganizationMembersController.inviteMember);
+// router.post('/invite', authMiddleware, OrganizationMembersController.inviteMember);
+
+/**
+ * @swagger
+ * /api/organization-members/public-create-with-verification:
+ *   post:
+ *     summary: Crear miembro público con verificación de email
+ *     description: Crea un nuevo miembro DRIVER en una organización y envía código de verificación por email (endpoint público)
+ *     tags: [Organization Members]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - organization_uuid
+ *               - email
+ *               - name
+ *             properties:
+ *               organization_uuid:
+ *                 type: string
+ *                 format: uuid
+ *                 example: "550e8400-e29b-41d4-a716-446655440000"
+ *                 description: UUID de la organización
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "nuevo@ejemplo.com"
+ *                 description: Email del usuario
+ *               name:
+ *                 type: string
+ *                 example: "Juan Pérez"
+ *                 description: Nombre del usuario
+
+ *               title:
+ *                 type: string
+ *                 example: "Conductor"
+ *                 description: Título o cargo del usuario (opcional - solo se asigna rol DRIVER)
+ *     responses:
+ *       201:
+ *         description: Miembro creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                         email:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         status:
+ *                           type: string
+ *                     member:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                         uuid:
+ *                           type: string
+ *                           format: uuid
+ *                         organization_id:
+ *                           type: integer
+ *                         user_id:
+ *                           type: integer
+ *                         status:
+ *                           type: string
+ *                     roles:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                           role_name:
+ *                             type: string
+ *                           description:
+ *                             type: string
+ *                     emailSent:
+ *                       type: boolean
+ *                 message:
+ *                   type: string
+ *                   example: "Member created successfully. Please check your email for verification code."
+ *       400:
+ *         description: Datos inválidos o usuario ya existe
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationError'
+ *       404:
+ *         description: Organización no encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundError'
+ */
+router.post('/public-create-with-verification', OrganizationMembersController.publicCreateWithVerification);
 
 export default router;

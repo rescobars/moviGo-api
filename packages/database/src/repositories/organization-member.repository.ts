@@ -192,4 +192,52 @@ export class OrganizationMemberRepository {
 
     return result;
   }
+
+  // Get organization by UUID
+  static async getOrganizationByUuid(uuid: string): Promise<any> {
+    const organization = await db('organizations')
+      .select('*')
+      .where({ uuid, is_active: true })
+      .first();
+    
+    return organization || null;
+  }
+
+  // Create user and member with transaction
+  static async createUserAndMemberWithTransaction(data: {
+    organization_id: number;
+    userData: any;
+    memberData: any;
+    roles: any[];
+  }): Promise<{ user: any; member: any; roles: any[] }> {
+    return db.transaction(async (trx) => {
+      // Create user
+      const [user] = await trx('users')
+        .insert(data.userData)
+        .returning('*');
+
+      // Create member
+      const [member] = await trx('organization_members')
+        .insert({
+          ...data.memberData,
+          organization_id: data.organization_id,
+          user_id: user.id
+        })
+        .returning('*');
+
+      // Create member roles
+      const memberRoles = [];
+      for (const roleData of data.roles) {
+        const [role] = await trx('member_roles')
+          .insert({
+            ...roleData,
+            organization_member_id: member.id
+          })
+          .returning('*');
+        memberRoles.push(role);
+      }
+
+      return { user, member, roles: memberRoles };
+    });
+  }
 }

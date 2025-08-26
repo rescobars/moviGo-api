@@ -9,7 +9,7 @@ export const UserSchema = z.object({
   uuid: z.string().uuid(),
   email: z.string().email(),
   name: z.string().min(1, 'Name is required'),
-  password_hash: z.string().min(1, 'Password hash is required'),
+  password_hash: z.string().nullable(),
   status: UserStatusEnum,
   is_active: z.boolean(),
   created_at: z.date(),
@@ -20,7 +20,7 @@ export const UserSchema = z.object({
 export const CreateUserSchema = z.object({
   email: z.string().email('Invalid email format'),
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password_hash: z.string().nullable().optional(),
   status: UserStatusEnum.optional().default('ACTIVE')
 });
 
@@ -38,9 +38,17 @@ export const LoginUserSchema = z.object({
   password: z.string().min(1, 'Password is required')
 });
 
+// Schema for creating a passwordless user
+export const CreatePasswordlessUserSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+  status: UserStatusEnum.optional().default('INACTIVE')
+});
+
 // Type exports
 export type User = z.infer<typeof UserSchema>;
 export type CreateUser = z.infer<typeof CreateUserSchema>;
+export type CreatePasswordlessUser = z.infer<typeof CreatePasswordlessUserSchema>;
 export type UpdateUser = z.infer<typeof UpdateUserSchema>;
 export type LoginUser = z.infer<typeof LoginUserSchema>;
 export type UserStatus = z.infer<typeof UserStatusEnum>;

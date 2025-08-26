@@ -195,4 +195,73 @@ export class EmailService {
       return false;
     }
   }
+
+  static async sendEmailVerification(
+    email: string, 
+    name: string, 
+    verificationCode: string
+  ): Promise<boolean> {
+    try {
+      // In development, redirect all emails to the configured development email
+      const targetEmail = process.env.NODE_ENV === 'development' && process.env.DEV_EMAIL 
+        ? process.env.DEV_EMAIL 
+        : email;
+      
+      console.log(`📧 Sending email verification to ${targetEmail} for ${name}${email !== targetEmail ? ` (original: ${email})` : ''}`);
+
+      if (!process.env.RESEND_API_KEY) {
+        console.log('⚠️ RESEND_API_KEY not configured, skipping email send');
+        console.log(`👤 Name: ${name}`);
+        console.log(`🔢 Verification Code: ${verificationCode}`);
+        return true;
+      }
+
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      const emailContent = `
+        <p style="color: #666; line-height: 1.6;">
+          Hola <strong>${name}</strong>, bienvenido a moviGo!
+        </p>
+        
+        <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 20px; margin: 20px 0;">
+          <h3 style="color: #333; margin-top: 0; text-align: center;">🔢 Tu código de verificación</h3>
+          <div style="text-align: center; margin: 20px 0;">
+            <div style="background: #667eea; color: white; font-size: 32px; font-weight: bold; padding: 15px; border-radius: 10px; letter-spacing: 5px; display: inline-block; min-width: 200px;">
+              ${verificationCode}
+            </div>
+          </div>
+          <p style="color: #666; font-size: 14px; text-align: center; margin: 0;">
+            Ingresa este código en la aplicación para verificar tu cuenta
+          </p>
+        </div>
+        
+        <p style="color: #666; font-size: 14px; margin-top: 30px;">
+          <strong>⚠️ Importante:</strong> Este código es válido por 15 minutos y solo puede ser usado una vez.
+        </p>
+        
+        <p style="color: #666; font-size: 14px;">
+          Si no solicitaste esta verificación, puedes ignorar este email de forma segura.
+        </p>
+      `;
+
+      const { data, error } = await resend.emails.send({
+        from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
+        to: [targetEmail],
+        subject: '🔐 Verifica tu cuenta moviGo',
+        html: this.getEmailTemplate('¡Bienvenido a moviGo! 🎉', emailContent)
+      });
+
+      if (error) {
+        console.error('❌ Error sending verification email:', error);
+        console.error('❌ Error details:', JSON.stringify(error, null, 2));
+        return false;
+      }
+
+      console.log('✅ Verification email sent successfully:', data);
+      return true;
+    } catch (error) {
+      console.error('❌ Error sending verification email:', error);
+      return false;
+    }
+  }
 }
