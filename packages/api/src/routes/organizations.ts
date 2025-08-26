@@ -111,6 +111,11 @@ router.get('/', authMiddleware, OrganizationsController.getAll);
  *                 type: string
  *                 enum: [FREE, BASIC, PRO, ENTERPRISE]
  *                 example: "BASIC"
+ *               subscription_expires_at:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2025-12-31T00:00:00.000Z"
+ *                 description: Fecha de expiración de la suscripción
  *     responses:
  *       201:
  *         description: Organización creada exitosamente

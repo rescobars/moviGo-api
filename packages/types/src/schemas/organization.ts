@@ -39,7 +39,8 @@ export const CreateOrganizationSchema = z.object({
   contact_phone: z.string().optional(),
   address: z.string().optional(),
   status: OrganizationStatusEnum.optional().default('ACTIVE'),
-  plan_type: PlanTypeEnum.optional().default('FREE')
+  plan_type: PlanTypeEnum.optional().default('FREE'),
+  subscription_expires_at: z.string().datetime().optional()
 });
 
 // Schema for updating an organization
@@ -56,7 +57,7 @@ export const UpdateOrganizationSchema = z.object({
   status: OrganizationStatusEnum.optional(),
   is_active: z.boolean().optional(),
   plan_type: PlanTypeEnum.optional(),
-  subscription_expires_at: z.date().optional()
+  subscription_expires_at: z.string().datetime().optional()
 });
 
 // Type exports

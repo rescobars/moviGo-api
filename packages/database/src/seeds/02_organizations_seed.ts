@@ -7,7 +7,6 @@ export async function seed(knex: Knex): Promise<void> {
   // Inserts seed entries
   await knex('organizations').insert([
     {
-      id: 1,
       uuid: knex.raw('gen_random_uuid()'),
       name: 'Restaurante El Buen Sabor',
       slug: 'restaurante-el-buen-sabor',
@@ -24,7 +23,6 @@ export async function seed(knex: Knex): Promise<void> {
       subscription_expires_at: new Date('2025-12-31'),
     },
     {
-      id: 2,
       uuid: knex.raw('gen_random_uuid()'),
       name: 'Pizza Express',
       slug: 'pizza-express',
@@ -41,7 +39,6 @@ export async function seed(knex: Knex): Promise<void> {
       subscription_expires_at: new Date('2025-06-30'),
     },
     {
-      id: 3,
       uuid: knex.raw('gen_random_uuid()'),
       name: 'Café Central',
       slug: 'cafe-central',
@@ -58,7 +55,6 @@ export async function seed(knex: Knex): Promise<void> {
       subscription_expires_at: new Date('2025-03-31'),
     },
     {
-      id: 4,
       uuid: knex.raw('gen_random_uuid()'),
       name: 'Sushi Master',
       slug: 'sushi-master',
@@ -75,7 +71,6 @@ export async function seed(knex: Knex): Promise<void> {
       subscription_expires_at: new Date('2026-12-31'),
     },
     {
-      id: 5,
       uuid: knex.raw('gen_random_uuid()'),
       name: 'moviGo Platform',
       slug: 'movigo-platform',
