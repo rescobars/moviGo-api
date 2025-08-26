@@ -6,12 +6,13 @@ export class OrganizationsController {
 
   static async getAll(req: Request, res: Response) {
     try {
-      const { status, plan_type } = req.query;
+      const { status, plan_type, search } = req.query;
       
       // Build filter object
       const filters: any = {};
       if (status) filters.status = status;
       if (plan_type) filters.plan_type = plan_type;
+      if (search) filters.search = search;
 
       const organizations = await OrganizationRepository.findAll(filters);
 

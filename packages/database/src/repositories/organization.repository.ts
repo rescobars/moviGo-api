@@ -16,6 +16,20 @@ export class OrganizationRepository {
       query = query.where('plan_type', filters.plan_type);
     }
 
+    // Apply search filter
+    if (filters.search) {
+      const searchTerm = `%${filters.search}%`;
+      query = query.where(function() {
+        this.where('name', 'ilike', searchTerm)
+          .orWhere('slug', 'ilike', searchTerm)
+          .orWhere('description', 'ilike', searchTerm)
+          .orWhere('domain', 'ilike', searchTerm)
+          .orWhere('contact_email', 'ilike', searchTerm)
+          .orWhere('contact_phone', 'ilike', searchTerm)
+          .orWhere('address', 'ilike', searchTerm);
+      });
+    }
+
     return query.orderBy('created_at', 'desc');
   }
 

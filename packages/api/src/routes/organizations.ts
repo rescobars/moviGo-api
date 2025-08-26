@@ -26,6 +26,11 @@ const router: Router = Router();
  *           type: string
  *           enum: [FREE, BASIC, PRO, ENTERPRISE]
  *         description: Filtrar por tipo de plan
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Buscar por nombre, slug, descripción, dominio, email, teléfono o dirección
  *     responses:
  *       200:
  *         description: Lista de organizaciones
