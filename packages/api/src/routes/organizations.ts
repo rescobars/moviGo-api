@@ -59,6 +59,88 @@ const router: Router = Router();
  *             schema:
  *               $ref: '#/components/schemas/AuthorizationError'
  */
+/**
+ * @swagger
+ * /api/organizations/public/{uuid}:
+ *   get:
+ *     summary: Obtener información pública de la organización
+ *     description: Retorna información pública de una organización para el login (no requiere autenticación)
+ *     tags: [Organizations]
+ *     parameters:
+ *       - in: path
+ *         name: uuid
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         example: "c8d82f56-4876-4146-9739-232c3d30f785"
+ *         description: UUID de la organización
+ *     responses:
+ *       200:
+ *         description: Información pública de la organización
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     uuid:
+ *                       type: string
+ *                       format: uuid
+ *                     name:
+ *                       type: string
+ *                       example: "movi go inc"
+ *                     slug:
+ *                       type: string
+ *                       example: "movigo-inc"
+ *                     description:
+ *                       type: string
+ *                       example: "Empresa principal de moviGo"
+ *                     domain:
+ *                       type: string
+ *                       example: "movigo.com"
+ *                     contact_email:
+ *                       type: string
+ *                       format: email
+ *                       example: "info@movigo.com"
+ *                     contact_phone:
+ *                       type: string
+ *                       example: "+502 5555-0000"
+ *                     address:
+ *                       type: string
+ *                       example: "Zona 10, Ciudad de Guatemala"
+ *                     status:
+ *                       type: string
+ *                       enum: [ACTIVE, INACTIVE, SUSPENDED]
+ *                       example: "ACTIVE"
+ *                     plan_type:
+ *                       type: string
+ *                       enum: [FREE, BASIC, PRO, ENTERPRISE]
+ *                       example: "ENTERPRISE"
+ *                     logo_url:
+ *                       type: string
+ *                       format: uri
+ *                       nullable: true
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                     updated_at:
+ *                       type: string
+ *                       format: date-time
+ *       404:
+ *         description: Organización no encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundError'
+ */
+router.get('/public/:uuid', OrganizationsController.getPublicInfo);
+
 router.get('/', authMiddleware, OrganizationsController.getAll);
 
 /**

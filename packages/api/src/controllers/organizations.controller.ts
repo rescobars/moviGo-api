@@ -212,4 +212,47 @@ export class OrganizationsController {
       });
     }
   }
+
+  static async getPublicInfo(req: Request, res: Response) {
+    try {
+      const { uuid } = req.params;
+
+      const organization = await OrganizationRepository.findByUuid(uuid);
+
+      if (!organization) {
+        return res.status(404).json({
+          success: false,
+          error: 'Organization not found'
+        });
+      }
+
+      // Only return public information for login purposes
+      const publicInfo = {
+        uuid: organization.uuid,
+        name: organization.name,
+        slug: organization.slug,
+        description: organization.description,
+        domain: organization.domain,
+        contact_email: organization.contact_email,
+        contact_phone: organization.contact_phone,
+        address: organization.address,
+        status: organization.status,
+        plan_type: organization.plan_type,
+        logo_url: organization.logo_url,
+        created_at: organization.created_at,
+        updated_at: organization.updated_at
+      };
+
+      res.json({
+        success: true,
+        data: publicInfo
+      });
+    } catch (error: any) {
+      console.error('❌ Error getting organization public info:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get organization public information'
+      });
+    }
+  }
 }
