@@ -3,14 +3,14 @@ import { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('orders', (table) => {
     // Identificadores según reglas
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
+    table.bigIncrements('id').primary();
     table.uuid('uuid').unique().defaultTo(knex.raw('gen_random_uuid()'));
     
     // Campos obligatorios
-    table.uuid('organization_id').notNullable().references('id').inTable('organizations').onDelete('CASCADE');
+    table.bigInteger('organization_id').notNullable().references('id').inTable('organizations').onDelete('CASCADE');
     
     // Campos opcionales
-    table.uuid('user_id').references('id').inTable('users').onDelete('SET NULL');
+    table.bigInteger('user_id').references('id').inTable('users').onDelete('SET NULL');
     
     // Información básica del pedido
     table.string('order_number').notNullable().unique();

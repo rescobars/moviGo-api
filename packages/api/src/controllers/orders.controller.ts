@@ -1,20 +1,20 @@
 import { Request, Response } from 'express';
 import { OrderRepository } from '../../../database/src/repositories/order.repository';
-import { CreateOrderSchema, UpdateOrderSchema } from '../../../types/src/schemas/order';
+import { CreateOrderSchema, UpdateOrderSchema, OrderDataForInsert } from '../../../types/src/schemas/order';
 
 export class OrdersController {
   static async getAll(req: Request, res: Response) {
     try {
-      const { organization_id } = req.params;
+      const { organization_uuid } = req.params;
       
-      if (!organization_id) {
+      if (!organization_uuid) {
         return res.status(400).json({ 
           success: false, 
-          error: 'organization_id is required' 
+          error: 'organization_uuid is required' 
         });
       }
 
-      const orders = await OrderRepository.findAll(organization_id);
+      const orders = await OrderRepository.findAll(organization_uuid);
       res.json({ success: true, data: orders });
     } catch (error) {
       res.status(500).json({ 
@@ -26,16 +26,16 @@ export class OrdersController {
 
   static async getPending(req: Request, res: Response) {
     try {
-      const { organization_id } = req.params;
+      const { organization_uuid } = req.params;
       
-      if (!organization_id) {
+      if (!organization_uuid) {
         return res.status(400).json({ 
           success: false, 
-          error: 'organization_id is required' 
+          error: 'organization_uuid is required' 
         });
       }
 
-      const orders = await OrderRepository.findPending(organization_id);
+      const orders = await OrderRepository.findPending(organization_uuid);
       res.json({ success: true, data: orders });
     } catch (error) {
       res.status(500).json({ 
@@ -45,18 +45,18 @@ export class OrdersController {
     }
   }
 
-  static async getById(req: Request, res: Response) {
+  static async getByUuid(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { uuid } = req.params;
       
-      if (!id) {
+      if (!uuid) {
         return res.status(400).json({ 
           success: false, 
-          error: 'Order ID is required' 
+          error: 'Order UUID is required' 
         });
       }
 
-      const order = await OrderRepository.findById(id);
+      const order = await OrderRepository.findByUuid(uuid);
       
       if (!order) {
         return res.status(404).json({ 
@@ -78,12 +78,49 @@ export class OrdersController {
     try {
       const validatedData = CreateOrderSchema.parse(req.body);
       
-      // Generar número de pedido automáticamente si no se proporciona
-      if (!validatedData.order_number) {
-        validatedData.order_number = await OrderRepository.generateOrderNumber(validatedData.organization_id);
+      // Create intermediate data for database insertion
+      const orderData: Partial<OrderDataForInsert> = {
+        description: validatedData.description,
+        total_amount: validatedData.total_amount,
+        pickup_address: validatedData.pickup_address,
+        delivery_address: validatedData.delivery_address,
+        pickup_lat: validatedData.pickup_lat,
+        pickup_lng: validatedData.pickup_lng,
+        delivery_lat: validatedData.delivery_lat,
+        delivery_lng: validatedData.delivery_lng,
+        order_number: validatedData.order_number
+      };
+
+      // Convert organization_uuid to organization_id
+      if (validatedData.organization_uuid) {
+        const organizationId = await OrderRepository.getOrganizationIdFromUuid(validatedData.organization_uuid);
+        if (!organizationId) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid organization UUID'
+          });
+        }
+        orderData.organization_id = organizationId;
       }
 
-      const order = await OrderRepository.create(validatedData);
+      // Convert user_uuid to user_id if provided
+      if (validatedData.user_uuid) {
+        const userId = await OrderRepository.getUserIdFromUuid(validatedData.user_uuid);
+        if (!userId) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid user UUID'
+          });
+        }
+        orderData.user_id = userId;
+      }
+
+      // Generate order number automatically if not provided
+      if (!orderData.order_number) {
+        orderData.order_number = await OrderRepository.generateOrderNumber(orderData.organization_id!);
+      }
+
+      const order = await OrderRepository.create(orderData as OrderDataForInsert);
       res.status(201).json({ success: true, data: order });
     } catch (error) {
       if (error instanceof Error && error.message.includes('validation')) {
@@ -102,17 +139,17 @@ export class OrdersController {
 
   static async update(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { uuid } = req.params;
       
-      if (!id) {
+      if (!uuid) {
         return res.status(400).json({ 
           success: false, 
-          error: 'Order ID is required' 
+          error: 'Order UUID is required' 
         });
       }
 
       const validatedData = UpdateOrderSchema.parse(req.body);
-      const order = await OrderRepository.update(id, validatedData);
+      const order = await OrderRepository.updateByUuid(uuid, validatedData);
       
       if (!order) {
         return res.status(404).json({ 
@@ -139,16 +176,16 @@ export class OrdersController {
 
   static async delete(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { uuid } = req.params;
       
-      if (!id) {
+      if (!uuid) {
         return res.status(400).json({ 
           success: false, 
-          error: 'Order ID is required' 
+          error: 'Order UUID is required' 
         });
       }
 
-      const deleted = await OrderRepository.delete(id);
+      const deleted = await OrderRepository.deleteByUuid(uuid);
       
       if (!deleted) {
         return res.status(404).json({ 
@@ -177,17 +214,54 @@ export class OrdersController {
         });
       }
 
-      // Validar cada pedido
-      const validatedOrders = [];
+      // Validate and convert UUIDs to IDs for each order
+      const validatedOrders: OrderDataForInsert[] = [];
       for (const order of orders) {
         const validatedOrder = CreateOrderSchema.parse(order);
         
-        // Generar número de pedido automáticamente si no se proporciona
-        if (!validatedOrder.order_number) {
-          validatedOrder.order_number = await OrderRepository.generateOrderNumber(validatedOrder.organization_id);
+        // Create intermediate data for database insertion
+        const orderData: Partial<OrderDataForInsert> = {
+          description: validatedOrder.description,
+          total_amount: validatedOrder.total_amount,
+          pickup_address: validatedOrder.pickup_address,
+          delivery_address: validatedOrder.delivery_address,
+          pickup_lat: validatedOrder.pickup_lat,
+          pickup_lng: validatedOrder.pickup_lng,
+          delivery_lat: validatedOrder.delivery_lat,
+          delivery_lng: validatedOrder.delivery_lng,
+          order_number: validatedOrder.order_number
+        };
+
+        // Convert organization_uuid to organization_id
+        if (validatedOrder.organization_uuid) {
+          const organizationId = await OrderRepository.getOrganizationIdFromUuid(validatedOrder.organization_uuid);
+          if (!organizationId) {
+            return res.status(400).json({
+              success: false,
+              error: 'Invalid organization UUID'
+            });
+          }
+          orderData.organization_id = organizationId;
+        }
+
+        // Convert user_uuid to user_id if provided
+        if (validatedOrder.user_uuid) {
+          const userId = await OrderRepository.getUserIdFromUuid(validatedOrder.user_uuid);
+          if (!userId) {
+            return res.status(400).json({
+              success: false,
+              error: 'Invalid user UUID'
+            });
+          }
+          orderData.user_id = userId;
+        }
+
+        // Generate order number automatically if not provided
+        if (!orderData.order_number) {
+          orderData.order_number = await OrderRepository.generateOrderNumber(orderData.organization_id!);
         }
         
-        validatedOrders.push(validatedOrder);
+        validatedOrders.push(orderData as OrderDataForInsert);
       }
 
       const createdOrders = await OrderRepository.bulkCreate(validatedOrders);

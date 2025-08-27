@@ -1,17 +1,17 @@
 import { Router } from 'express';
-import { authMiddleware } from '@movigo/auth';
+import { authMiddleware } from '../../../auth/src/auth';
 import { OrdersController } from '../controllers/orders.controller';
 
 const router: Router = Router();
 
 // Obtener todos los pedidos de una organización
-router.get('/organization/:organization_id', authMiddleware, OrdersController.getAll);
+router.get('/organization/:organization_uuid', authMiddleware, OrdersController.getAll);
 
 // Obtener pedidos pendientes de una organización
-router.get('/organization/:organization_id/pending', authMiddleware, OrdersController.getPending);
+router.get('/organization/:organization_uuid/pending', authMiddleware, OrdersController.getPending);
 
-// Obtener un pedido por ID
-router.get('/:id', authMiddleware, OrdersController.getById);
+// Obtener un pedido por UUID
+router.get('/:uuid', authMiddleware, OrdersController.getByUuid);
 
 // Crear un nuevo pedido
 router.post('/', authMiddleware, OrdersController.create);
@@ -20,9 +20,9 @@ router.post('/', authMiddleware, OrdersController.create);
 router.post('/bulk', authMiddleware, OrdersController.bulkCreate);
 
 // Actualizar un pedido
-router.put('/:id', authMiddleware, OrdersController.update);
+router.put('/:uuid', authMiddleware, OrdersController.update);
 
 // Eliminar un pedido
-router.delete('/:id', authMiddleware, OrdersController.delete);
+router.delete('/:uuid', authMiddleware, OrdersController.delete);
 
 export default router;
