@@ -84,10 +84,10 @@ export class OrdersController {
         total_amount: validatedData.total_amount,
         pickup_address: validatedData.pickup_address,
         delivery_address: validatedData.delivery_address,
-        pickup_lat: validatedData.pickup_lat,
-        pickup_lng: validatedData.pickup_lng,
-        delivery_lat: validatedData.delivery_lat,
-        delivery_lng: validatedData.delivery_lng,
+        pickup_lat: validatedData.pickup_lat ?? undefined,
+        pickup_lng: validatedData.pickup_lng ?? undefined,
+        delivery_lat: validatedData.delivery_lat ?? undefined,
+        delivery_lng: validatedData.delivery_lng ?? undefined,
         order_number: validatedData.order_number
       };
 
@@ -225,10 +225,10 @@ export class OrdersController {
           total_amount: validatedOrder.total_amount,
           pickup_address: validatedOrder.pickup_address,
           delivery_address: validatedOrder.delivery_address,
-          pickup_lat: validatedOrder.pickup_lat,
-          pickup_lng: validatedOrder.pickup_lng,
-          delivery_lat: validatedOrder.delivery_lat,
-          delivery_lng: validatedOrder.delivery_lng,
+          pickup_lat: validatedOrder.pickup_lat ?? undefined,
+          pickup_lng: validatedOrder.pickup_lng ?? undefined,
+          delivery_lat: validatedOrder.delivery_lat ?? undefined,
+          delivery_lng: validatedOrder.delivery_lng ?? undefined,
           order_number: validatedOrder.order_number
         };
 
