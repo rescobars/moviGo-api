@@ -26,6 +26,12 @@ export class OrderRepository {
     return order || null;
   }
 
+  static async findByUuids(uuids: string[]): Promise<Order[]> {
+    return db('orders')
+      .select('*')
+      .whereIn('uuid', uuids);
+  }
+
   static async create(orderData: OrderDataForInsert): Promise<Order> {
     const [order] = await db('orders')
       .insert({
