@@ -115,10 +115,9 @@ export class OrdersController {
         orderData.user_id = userId;
       }
 
-      // Generate order number automatically if not provided
-      if (!orderData.order_number) {
-        orderData.order_number = await OrderRepository.generateOrderNumber(orderData.organization_id!);
-      }
+    
+      orderData.order_number = await OrderRepository.generateOrderNumber(orderData.organization_id!);
+      
 
       const order = await OrderRepository.create(orderData as OrderDataForInsert);
       res.status(201).json({ success: true, data: order });
@@ -256,10 +255,7 @@ export class OrdersController {
           orderData.user_id = userId;
         }
 
-        // Generate order number automatically if not provided
-        if (!orderData.order_number) {
-          orderData.order_number = await OrderRepository.generateOrderNumber(orderData.organization_id!);
-        }
+        orderData.order_number = await OrderRepository.generateOrderNumber(orderData.organization_id!);        
         
         validatedOrders.push(orderData as OrderDataForInsert);
       }

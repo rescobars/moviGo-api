@@ -59,7 +59,7 @@ export class OrderRepository {
     // Generate unique order numbers for each order
     const ordersWithTimestamps = [];
     for (const order of orders) {
-      const orderNumber = order.order_number || await this.generateOrderNumber(order.organization_id);
+      const orderNumber = await this.generateOrderNumber(order.organization_id);
       ordersWithTimestamps.push({
         ...order,
         order_number: orderNumber,
@@ -74,11 +74,20 @@ export class OrderRepository {
   }
 
   static async generateOrderNumber(organizationId: number): Promise<string> {
-    const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
-    const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+    
+    const orderCounter =  await db("orders")
+      .where("organization_id", organizationId)
+      .first("id")
+      .orderBy("id", "desc")
+    
+    if(!orderCounter){
+      return "O001"
+    }
+    const lastOrderNumber = orderCounter.id + 1
+    
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     
-    return `O${today}-${timestamp}-${random}`;
+    return `${random}-${organizationId}-${lastOrderNumber}`;
   }
 
   // Helper method to get organization ID from UUID
