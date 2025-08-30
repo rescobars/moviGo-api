@@ -8,7 +8,4 @@ export * from './organization.repository';
 // Order repositories
 export * from './order.repository';
 
-// Route repositories
-export * from './route.repository';
-export * from './route-waypoint.repository';
-export * from './route-order.repository';
+
