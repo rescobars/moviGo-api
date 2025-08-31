@@ -6,6 +6,7 @@ export * from './member-role';
 export * from './auth-token';
 export * from './user-session';
 export * from './order';
+export * from './route';
 
 
 // Order schemas

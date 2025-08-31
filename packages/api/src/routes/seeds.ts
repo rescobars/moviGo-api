@@ -1,7 +1,14 @@
 import { Router } from 'express';
 import { db } from '../../../database/src/db-config';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const router: Router = Router();
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Middleware to verify API key for seeds
 const verifyApiKey = (req: any, res: any, next: any) => {
@@ -85,11 +92,15 @@ router.post('/run-specific', verifyApiKey, async (req, res) => {
 // GET /api/seeds/list - List available seed files
 router.get('/list', verifyApiKey, async (req, res) => {
   try {
-    // Knex doesn't have a built-in list method for seeds
-    // We'll return a simple response for now
+    // Read seed files dynamically from the seeds directory
+    const seedsDir = path.join(__dirname, '../../../database/src/seeds');
+    const seedFiles = fs.readdirSync(seedsDir)
+      .filter(file => file.endsWith('.ts') && file.includes('_seed.ts'))
+      .sort(); // Sort to maintain order
+    
     res.json({
       success: true,
-      data: ['01_users_seed.ts'],
+      data: seedFiles,
       message: 'Available seed files'
     });
   } catch (error) {

@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import { db } from '../packages/database/src/db-config';
-import { userRoutes, authRoutes, migrationRoutes, seedRoutes, organizationMemberRoutes, organizationRoutes, orderRoutes } from '../packages/api/src/routes';
+import { userRoutes, authRoutes, migrationRoutes, seedRoutes, organizationMemberRoutes, organizationRoutes, orderRoutes, routeRoutes } from '../packages/api/src/routes';
 import { UserRepository } from '../packages/database/src/repositories/user-repository';
 import { AuthTokenRepository } from '../packages/database/src/repositories/auth-token.repository';
 import { specs } from '../packages/api/src/config/swagger';
@@ -47,6 +47,7 @@ app.use('/api/seeds', seedRoutes);
 app.use('/api/organization-members', organizationMemberRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/routes', routeRoutes);
 
 
 // Basic API routes

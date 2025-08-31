@@ -7,5 +7,7 @@ export * from './organization.repository';
 
 // Order repositories
 export * from './order.repository';
+export * from './route.repository';
+export * from './route-order.repository';
 
 
