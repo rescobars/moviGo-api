@@ -1,13 +1,40 @@
 import { Knex } from 'knex';
-import { Route, CreateRouteRequest } from '../../types/src/schemas/route';
+import { Route, CreateRouteRequest, OrderedWaypoint } from '../../../types/src/schemas/route';
 
 export class RouteRepository {
   constructor(private readonly knex: Knex) {}
 
   async create(routeData: CreateRouteRequest): Promise<Route> {
+    // Convert organization UUID to numeric ID
+    const organization = await this.knex('organizations')
+      .where('uuid', routeData.organization_id)
+      .first();
+    
+    if (!organization) {
+      throw new Error(`Organization with UUID ${routeData.organization_id} not found`);
+    }
+
+    // Convert order UUIDs to numeric IDs in ordered_waypoints
+    const updatedOrderedWaypoints = await Promise.all(
+      routeData.ordered_waypoints.map(async (waypoint: OrderedWaypoint) => {
+        const order = await this.knex('orders')
+          .where('uuid', waypoint.order_id)
+          .first();
+        
+        if (!order) {
+          throw new Error(`Order with UUID ${waypoint.order_id} not found`);
+        }
+
+        return {
+          order_id: order.id, // Use numeric ID
+          order: waypoint.order
+        };
+      })
+    );
+
     const [route] = await this.knex('routes')
       .insert({
-        organization_id: routeData.organization_id,
+        organization_id: organization.id, // Use numeric ID
         route_name: routeData.route_name,
         description: routeData.description,
         origin_lat: routeData.origin.lat,
@@ -18,7 +45,7 @@ export class RouteRepository {
         destination_name: routeData.destination.name,
         waypoints: JSON.stringify(routeData.waypoints),
         route_points: JSON.stringify(routeData.route),
-        ordered_waypoints: JSON.stringify(routeData.ordered_waypoints),
+        ordered_waypoints: JSON.stringify(updatedOrderedWaypoints),
         traffic_condition: JSON.stringify(routeData.traffic_condition),
         traffic_delay: routeData.traffic_delay || 0,
       })
