@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const OrderStatusSchema = z.enum(['PENDING', 'ASSIGNED', 'COMPLETED', 'CANCELLED']);
+export const OrderStatusSchema = z.enum(['PENDING', 'ASSIGNED', 'IN_ROUTE', 'COMPLETED', 'CANCELLED']);
 
 // Helper functions to reduce code duplication
 const coordinateTransform = (val: string | number | undefined) => {
