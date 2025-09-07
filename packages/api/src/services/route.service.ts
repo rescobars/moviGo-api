@@ -1,5 +1,7 @@
 import { RouteRepository } from '../../../database/src/repositories/route.repository';
 import { RouteOrderRepository } from '../../../database/src/repositories/route-order.repository';
+import { OrderRepository } from '../../../database/src/repositories/order.repository';
+import { db } from '../../../database/src/db-config';
 import { 
   Route, 
   CreateRouteRequest,
@@ -16,19 +18,41 @@ export class RouteService {
     // Validate route data using Zod
     const validatedData = CreateRouteRequestSchema.parse(routeData);
 
-    // Create the route
-    const route = await this.routeRepository.create(validatedData);
+    // Execute everything in a transaction
+    return await db.transaction(async (trx) => {
+      // Create repositories with transaction
+      const routeRepository = new RouteRepository(trx);
+      const routeOrderRepository = new RouteOrderRepository(trx);
 
-    // Create route orders if provided
-    if (validatedData.ordered_waypoints && validatedData.ordered_waypoints.length > 0) {
-      const routeOrdersData = validatedData.ordered_waypoints.map(waypoint => ({
-        orderId: waypoint.order_id,
-        sequenceOrder: waypoint.order
-      }));
+      // Create the route
+      const route = await routeRepository.create(validatedData);
 
-      await this.routeOrderRepository.createMany(route.id, routeOrdersData);
-    }
+      // Create route orders if provided
+      if (validatedData.ordered_waypoints && validatedData.ordered_waypoints.length > 0) {
+        const routeOrdersData = validatedData.ordered_waypoints.map(waypoint => ({
+          orderId: waypoint.order_id,
+          sequenceOrder: waypoint.order
+        }));
 
-    return route;
+        await routeOrderRepository.createMany(route.id, routeOrdersData);
+
+        // Update orders status to ASSIGNED
+        // Convert order UUIDs to numeric IDs for bulk update
+        const orderUuids = validatedData.ordered_waypoints.map(waypoint => waypoint.order_id);
+        const orders = await OrderRepository.findByUuids(orderUuids, trx);
+        const orderIds = orders.map(order => order.id);
+        
+        if (orderIds.length > 0) {
+          await trx('orders')
+            .whereIn('id', orderIds)
+            .update({
+              status: 'ASSIGNED',
+              updated_at: new Date()
+            });
+        }
+      }
+
+      return route;
+    });
   }
 }

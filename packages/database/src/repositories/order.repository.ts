@@ -26,10 +26,11 @@ export class OrderRepository {
     return order || null;
   }
 
-  static async findByUuids(uuids: string[]): Promise<Order[]> {
-    return db('orders')
+  static async findByUuids(uuids: string[], knexInstance?: any): Promise<Order[]> {
+    const query = (knexInstance || db)('orders')
       .select('*')
       .whereIn('uuid', uuids);
+    return query;
   }
 
   static async create(orderData: OrderDataForInsert): Promise<Order> {

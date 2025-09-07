@@ -57,6 +57,7 @@ export class RouteRepository {
   private mapDbRouteToRoute(dbRoute: any): Route {
     return {
       id: dbRoute.id,
+      uuid: dbRoute.uuid,
       organization_id: dbRoute.organization_id,
       route_name: dbRoute.route_name,
       description: dbRoute.description,

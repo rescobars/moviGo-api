@@ -30,7 +30,7 @@ export const TrafficConditionSchema = z.object({
 });
 
 export const CreateRouteRequestSchema = z.object({
-  organization_id: z.string().min(1),
+  organization_id: z.string().uuid(),
   route_name: z.string().min(1),
   description: z.string().optional(),
   origin: WaypointSchema,
@@ -43,8 +43,9 @@ export const CreateRouteRequestSchema = z.object({
 });
 
 export const RouteSchema = z.object({
-  id: z.string().min(1),
-  organization_id: z.string().min(1),
+  id: z.number().int().positive(),
+  uuid: z.string().uuid(),
+  organization_id: z.number().int().positive(),
   route_name: z.string().min(1),
   description: z.string().optional(),
   origin_lat: z.number().min(-90).max(90),
@@ -63,9 +64,9 @@ export const RouteSchema = z.object({
 });
 
 export const RouteOrderSchema = z.object({
-  id: z.string().min(1),
-  route_id: z.string().min(1),
-  order_id: z.string().min(1),
+  id: z.number().int().positive(),
+  route_id: z.number().int().positive(),
+  order_id: z.number().int().positive(),
   sequence_order: z.number().min(1),
   created_at: z.string().datetime()
 });
