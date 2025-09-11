@@ -12,7 +12,7 @@ const routeRepository = new RouteRepository((global as any).knex);
 const routeDriverService = new RouteDriverService(routeDriverRepository, routeRepository);
 const routeDriverController = new RouteDriverController(routeDriverService);
 
-// Only one endpoint: assign driver to route by UUIDs
+// Route driver assignment routes
 router.post('/assign/:routeUuid/:driverUuid', (req, res) => routeDriverController.assignDriverToRoute(req, res));
 
 export default router;

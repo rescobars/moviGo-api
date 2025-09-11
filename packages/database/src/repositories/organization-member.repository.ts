@@ -209,67 +209,73 @@ export class OrganizationMemberRepository {
     roleName?: string
   ): Promise<Array<{
     user_uuid: string;
+    organization_membership_uuid: string;
     email: string;
     name: string;
     status: string;
     member_since: Date;
     roles: Array<{ role_name: string; uuid?: string }>;
   }>> {
-    // Base members in org by UUID
-    const members = await db('organization_members')
-      .join('organizations', 'organization_members.organization_id', 'organizations.id')
-      .join('users', 'organization_members.user_id', 'users.id')
-      .where('organizations.uuid', organizationUuid)
-      .where('organization_members.is_active', true)
+    // Build the CTE for member roles aggregation
+    const memberRolesCte = db('organization_members as om')
+      .join('organizations as o', 'om.organization_id', 'o.id')
+      .join('users as u', 'om.user_id', 'u.id')
+      .leftJoin('member_roles as mr', function() {
+        this.on('mr.organization_member_id', '=', 'om.id')
+            .andOn('mr.is_active', '=', db.raw('true'));
+      })
+      .where('o.uuid', organizationUuid)
+      .where('om.is_active', true)
+      .groupBy(
+        'om.id', 'om.uuid', 'om.created_at', 
+        'u.uuid', 'u.email', 'u.name', 'u.status'
+      )
       .select(
-        'organization_members.id as member_id',
-        'organization_members.created_at as member_since',
-        'users.uuid as user_uuid',
-        'users.email',
-        'users.name',
-        'users.status'
+        'om.id as member_id',
+        'om.uuid as organization_membership_uuid',
+        'om.created_at as member_since',
+        'u.uuid as user_uuid',
+        'u.email',
+        'u.name',
+        'u.status',
+        db.raw(`
+          COALESCE(
+            JSON_AGG(
+              JSON_BUILD_OBJECT('role_name', mr.role_name, 'uuid', mr.uuid)
+              ORDER BY mr.role_name
+            ) FILTER (WHERE mr.role_name IS NOT NULL),
+            '[]'::json
+          ) as roles
+        `)
       );
 
-    if (members.length === 0) return [];
+    // Build the main query with CTE
+    let query = db.with('member_roles_agg', memberRolesCte)
+      .from('member_roles_agg')
+      .select('*')
+      .orderBy('member_since', 'desc');
 
-    // Fetch roles per member (optionally filter by role name)
-    const memberIds = members.map(m => m.member_id);
-    const rolesQuery = db('member_roles')
-      .whereIn('organization_member_id', memberIds)
-      .where('is_active', true)
-      .select('organization_member_id', 'role_name');
-
+    // Apply role filter if provided
     if (roleName) {
-      rolesQuery.andWhere('role_name', roleName);
+      query = query.whereExists(function() {
+        this.select(db.raw('1'))
+          .from(db.raw('JSON_ARRAY_ELEMENTS(roles) as role_elem'))
+          .where(db.raw("role_elem->>'role_name' = ?", [roleName]));
+      });
     }
 
-    const roles = await rolesQuery;
+    const results = await query;
 
-    // Map roles by member
-    const memberIdToRoles = new Map<number, Array<{ role_name: string }>>();
-    for (const r of roles) {
-      const arr = memberIdToRoles.get(r.organization_member_id) || [];
-      arr.push({ role_name: r.role_name });
-      memberIdToRoles.set(r.organization_member_id, arr);
-    }
-
-    // Build result, applying role filter: if roleName provided, only include members having that role
-    const result = members
-      .filter(m => {
-        if (!roleName) return true;
-        const r = memberIdToRoles.get(m.member_id) || [];
-        return r.some(x => x.role_name === roleName);
-      })
-      .map(m => ({
-        user_uuid: m.user_uuid,
-        email: m.email,
-        name: m.name,
-        status: m.status,
-        member_since: m.member_since,
-        roles: (memberIdToRoles.get(m.member_id) || []).map(x => ({ role_name: x.role_name }))
-      }));
-
-    return result;
+    // Transform the results
+    return results.map((row: any) => ({
+      user_uuid: row.user_uuid,
+      organization_membership_uuid: row.organization_membership_uuid,
+      email: row.email,
+      name: row.name,
+      status: row.status,
+      member_since: row.member_since,
+      roles: row.roles || []
+    }));
   }
   // Create user and member with transaction
   static async createUserAndMemberWithTransaction(data: {
