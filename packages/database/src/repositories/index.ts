@@ -9,5 +9,6 @@ export * from './organization.repository';
 export * from './order.repository';
 export * from './route.repository';
 export * from './route-order.repository';
+export * from './route-driver.repository';
 
 

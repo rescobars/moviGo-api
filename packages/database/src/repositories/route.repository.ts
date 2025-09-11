@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 import { Route, CreateRouteRequest, OrderedWaypoint } from '../../../types/src/schemas/route';
 
 export class RouteRepository {
-  constructor(private readonly knex: Knex) {}
+  constructor(public readonly knex: Knex) {}
 
   async create(routeData: CreateRouteRequest): Promise<Route> {
     // Convert organization UUID to numeric ID
@@ -48,6 +48,9 @@ export class RouteRepository {
         ordered_waypoints: JSON.stringify(updatedOrderedWaypoints),
         traffic_condition: JSON.stringify(routeData.traffic_condition),
         traffic_delay: routeData.traffic_delay || 0,
+        // Status and priority
+        status: routeData.status || 'PLANNED',
+        priority: routeData.priority || 'MEDIUM',
       })
       .returning('*');
 
@@ -60,6 +63,42 @@ export class RouteRepository {
       .orderBy('created_at', 'desc');
 
     return routes.map(route => this.mapDbRouteToRoute(route));
+  }
+
+  async updateStatus(routeId: number, status: string): Promise<Route | null> {
+    const [updatedRoute] = await this.knex('routes')
+      .where('id', routeId)
+      .update({
+        status,
+        updated_at: this.knex.fn.now()
+      })
+      .returning('*');
+
+    return updatedRoute ? this.mapDbRouteToRoute(updatedRoute) : null;
+  }
+
+  async updatePriority(routeId: number, priority: string): Promise<Route | null> {
+    const [updatedRoute] = await this.knex('routes')
+      .where('id', routeId)
+      .update({
+        priority,
+        updated_at: this.knex.fn.now()
+      })
+      .returning('*');
+
+    return updatedRoute ? this.mapDbRouteToRoute(updatedRoute) : null;
+  }
+
+  async updateStatusWithTransaction(trx: Knex.Transaction, routeId: number, status: string): Promise<Route | null> {
+    const [updatedRoute] = await trx('routes')
+      .where('id', routeId)
+      .update({
+        status,
+        updated_at: trx.fn.now()
+      })
+      .returning('*');
+
+    return updatedRoute ? this.mapDbRouteToRoute(updatedRoute) : null;
   }
 
   async findAllWithOrdersByOrganization(organizationId: number): Promise<any[]> {
@@ -131,6 +170,9 @@ export class RouteRepository {
       ordered_waypoints: typeof dbRoute.ordered_waypoints === 'string' ? JSON.parse(dbRoute.ordered_waypoints) : dbRoute.ordered_waypoints,
       traffic_condition: typeof dbRoute.traffic_condition === 'string' ? JSON.parse(dbRoute.traffic_condition) : dbRoute.traffic_condition,
       traffic_delay: dbRoute.traffic_delay,
+      // Status and priority
+      status: dbRoute.status || 'PLANNED',
+      priority: dbRoute.priority || 'MEDIUM',
       created_at: dbRoute.created_at,
       updated_at: dbRoute.updated_at,
     };

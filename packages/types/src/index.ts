@@ -35,5 +35,7 @@ export * from './schemas/organization-member';
 export * from './schemas/member-role';
 export * from './schemas/user-session';
 export * from './schemas/order';
+export * from './schemas/route';
+export * from './schemas/route-driver';
 
 export * from './schemas/permission-templates';

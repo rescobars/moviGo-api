@@ -39,7 +39,10 @@ export const CreateRouteRequestSchema = z.object({
   route: z.array(RoutePointSchema).min(1),
   ordered_waypoints: z.array(OrderedWaypointSchema).min(1),
   traffic_condition: TrafficConditionSchema,
-  traffic_delay: z.number().min(0).optional()
+  traffic_delay: z.number().min(0).optional(),
+  // Status and priority
+  status: z.enum(['PLANNED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'PAUSED']).optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional()
 });
 
 export const RouteSchema = z.object({
@@ -59,6 +62,9 @@ export const RouteSchema = z.object({
   ordered_waypoints: z.array(OrderedWaypointSchema),
   traffic_condition: TrafficConditionSchema,
   traffic_delay: z.number().min(0),
+  // Status and priority
+  status: z.enum(['PLANNED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'PAUSED']),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   created_at: z.string().datetime(),
   updated_at: z.string().datetime()
 });
@@ -78,7 +84,10 @@ export const UpdateRouteRequestSchema = z.object({
   route: z.array(RoutePointSchema).optional(),
   ordered_waypoints: z.array(OrderedWaypointSchema).optional(),
   traffic_condition: TrafficConditionSchema.optional(),
-  traffic_delay: z.number().min(0).optional()
+  traffic_delay: z.number().min(0).optional(),
+  // Status and priority
+  status: z.enum(['PLANNED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'PAUSED']).optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional()
 });
 
 // Type exports for backward compatibility

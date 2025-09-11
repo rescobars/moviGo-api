@@ -6,4 +6,5 @@ export { default as organizationMemberRoutes } from './organization-members';
 export { default as organizationRoutes } from './organizations';
 export { default as orderRoutes } from './orders';
 export { default as routeRoutes } from './routes';
+export { default as routeDriverRoutes } from './route-driver';
 
