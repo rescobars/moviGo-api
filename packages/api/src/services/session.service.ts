@@ -230,6 +230,7 @@ export class SessionService {
         expiresIn: 24 * 60 * 60 // 24 hours in seconds
       };
     } catch (error) {
+      console.error('Error refreshing access token:', error);
       throw new Error('Invalid refresh token');
     }
   }

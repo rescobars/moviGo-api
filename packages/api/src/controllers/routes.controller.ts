@@ -34,4 +34,45 @@ export class RoutesController {
       });
     }
   }
+
+  async getAllRoutes(req: Request, res: Response): Promise<void> {
+    try {
+      // Get organization_id from JWT token or request headers
+      const organizationId = req.headers['organization-id'] as string;
+      if (!organizationId) {
+        res.status(400).json({ 
+          success: false,
+          error: 'Organization ID is required' 
+        });
+        return;
+      }
+
+      // Convert organization UUID to numeric ID
+      const organization = await (req as any).knex('organizations')
+        .where('uuid', organizationId)
+        .first();
+      
+      if (!organization) {
+        res.status(404).json({
+          success: false,
+          error: 'Organization not found'
+        });
+        return;
+      }
+
+      const routes = await this.routeService.getAllRoutesByOrganization(organization.id);
+      
+      res.status(200).json({
+        success: true,
+        data: routes,
+        message: 'Routes retrieved successfully'
+      });
+    } catch (error) {
+      console.error('Error getting routes:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get routes'
+      });
+    }
+  }
 }

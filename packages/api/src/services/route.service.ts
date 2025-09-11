@@ -55,4 +55,8 @@ export class RouteService {
       return route;
     });
   }
+
+  async getAllRoutesByOrganization(organizationId: number): Promise<any[]> {
+    return await this.routeRepository.findAllWithOrdersByOrganization(organizationId);
+  }
 }

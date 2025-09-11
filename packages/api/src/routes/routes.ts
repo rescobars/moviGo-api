@@ -12,13 +12,21 @@ const routeOrderRepository = new RouteOrderRepository(null as any); // Will be i
 const routeService = new RouteService(routeRepository, routeOrderRepository);
 const routesController = new RoutesController(routeService);
 
-// Route endpoints - only create
+// Route endpoints
 router.post('/', async (req, res) => {
   // Inject knex instance into repositories
   (routeRepository as any).knex = (req as any).knex;
   (routeOrderRepository as any).knex = (req as any).knex;
   
   await routesController.createRoute(req, res);
+});
+
+router.get('/', async (req, res) => {
+  // Inject knex instance into repositories
+  (routeRepository as any).knex = (req as any).knex;
+  (routeOrderRepository as any).knex = (req as any).knex;
+  
+  await routesController.getAllRoutes(req, res);
 });
 
 export default router;

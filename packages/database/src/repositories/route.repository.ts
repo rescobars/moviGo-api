@@ -54,6 +54,65 @@ export class RouteRepository {
     return this.mapDbRouteToRoute(route);
   }
 
+  async findAllByOrganization(organizationId: number): Promise<Route[]> {
+    const routes = await this.knex('routes')
+      .where('organization_id', organizationId)
+      .orderBy('created_at', 'desc');
+
+    return routes.map(route => this.mapDbRouteToRoute(route));
+  }
+
+  async findAllWithOrdersByOrganization(organizationId: number): Promise<any[]> {
+    const routes = await this.knex('routes')
+      .where('organization_id', organizationId)
+      .orderBy('created_at', 'desc');
+
+    // Para cada ruta, obtener los orders asociados
+    const routesWithOrders = await Promise.all(
+      routes.map(async (route) => {
+        const routeData = this.mapDbRouteToRoute(route);
+        
+        // Obtener los orders asociados a esta ruta
+        const orders = await this.knex('route_orders')
+          .join('orders', 'route_orders.order_id', 'orders.id')
+          .where('route_orders.route_id', route.id)
+          .select(
+            'orders.uuid as order_uuid',
+            'orders.order_number',
+            'orders.status',
+            'orders.pickup_address',
+            'orders.delivery_address',
+            'orders.pickup_lat',
+            'orders.pickup_lng',
+            'orders.delivery_lat',
+            'orders.delivery_lng',
+            'orders.total_amount',
+            'route_orders.sequence_order'
+          )
+          .orderBy('route_orders.sequence_order');
+
+        return {
+          ...routeData,
+          orders: orders.map(order => ({
+            order_uuid: order.order_uuid,
+            order_number: order.order_number,
+            status: order.status,
+            pickup_address: order.pickup_address,
+            delivery_address: order.delivery_address,
+            pickup_lat: order.pickup_lat,
+            pickup_lng: order.pickup_lng,
+            delivery_lat: order.delivery_lat,
+            delivery_lng: order.delivery_lng,
+            total_amount: order.total_amount,
+            sequence_order: order.sequence_order
+          }))
+        };
+      })
+    );
+
+    return routesWithOrders;
+  }
+
   private mapDbRouteToRoute(dbRoute: any): Route {
     return {
       id: dbRoute.id,
