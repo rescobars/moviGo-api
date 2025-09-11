@@ -101,10 +101,95 @@ export class RouteRepository {
     return updatedRoute ? this.mapDbRouteToRoute(updatedRoute) : null;
   }
 
-  async findAllWithOrdersByOrganization(organizationId: number): Promise<any[]> {
-    const routes = await this.knex('routes')
-      .where('organization_id', organizationId)
-      .orderBy('created_at', 'desc');
+  async findAllWithOrdersByOrganization(organizationId: number, filters?: any): Promise<any[]> {
+    console.log('🔍 RouteRepository - Applying filters:', filters);
+    
+    let query = this.knex('routes').where('organization_id', organizationId);
+
+    // Apply filters
+    if (filters) {
+      // Status filter
+      if (filters.status) {
+        const statusArray = Array.isArray(filters.status) ? filters.status : [filters.status];
+        query = query.whereIn('status', statusArray);
+      }
+
+      // Priority filter
+      if (filters.priority) {
+        const priorityArray = Array.isArray(filters.priority) ? filters.priority : [filters.priority];
+        query = query.whereIn('priority', priorityArray);
+      }
+
+      // Search filter (search in route_name, description, origin_name, destination_name)
+      if (filters.search) {
+        query = query.where(function() {
+          this.where('route_name', 'ilike', `%${filters.search}%`)
+            .orWhere('description', 'ilike', `%${filters.search}%`)
+            .orWhere('origin_name', 'ilike', `%${filters.search}%`)
+            .orWhere('destination_name', 'ilike', `%${filters.search}%`);
+        });
+      }
+
+      // Date filters
+      if (filters.created_after) {
+        query = query.where('created_at', '>=', filters.created_after);
+      }
+      if (filters.created_before) {
+        query = query.where('created_at', '<=', filters.created_before);
+      }
+      if (filters.updated_after) {
+        query = query.where('updated_at', '>=', filters.updated_after);
+      }
+      if (filters.updated_before) {
+        query = query.where('updated_at', '<=', filters.updated_before);
+      }
+
+      // Traffic delay filters
+      if (filters.min_traffic_delay) {
+        query = query.where('traffic_delay', '>=', filters.min_traffic_delay);
+      }
+      if (filters.max_traffic_delay) {
+        query = query.where('traffic_delay', '<=', filters.max_traffic_delay);
+      }
+
+      // Location filters (basic implementation)
+      if (filters.origin_lat && filters.origin_lon && filters.radius) {
+        // Simple radius search (you might want to implement proper geospatial queries)
+        const lat = parseFloat(filters.origin_lat);
+        const lon = parseFloat(filters.origin_lon);
+        const radius = parseFloat(filters.radius);
+        
+        query = query.where(function() {
+          this.whereRaw(`
+            (6371 * acos(cos(radians(?)) * cos(radians(origin_lat)) * 
+            cos(radians(origin_lon) - radians(?)) + sin(radians(?)) * 
+            sin(radians(origin_lat)))) <= ?
+          `, [lat, lon, lat, radius]);
+        });
+      }
+
+      // Sorting
+      const sortBy = filters.sort_by || 'created_at';
+      const sortOrder = filters.sort_order || 'desc';
+      query = query.orderBy(sortBy, sortOrder);
+
+      // Pagination
+      if (filters.limit) {
+        const limit = parseInt(filters.limit);
+        query = query.limit(limit);
+        
+        if (filters.page) {
+          const page = parseInt(filters.page);
+          const offset = (page - 1) * limit;
+          query = query.offset(offset);
+        }
+      }
+    } else {
+      // Default sorting if no filters
+      query = query.orderBy('created_at', 'desc');
+    }
+
+    const routes = await query;
 
     // Para cada ruta, obtener los orders asociados
     const routesWithOrders = await Promise.all(

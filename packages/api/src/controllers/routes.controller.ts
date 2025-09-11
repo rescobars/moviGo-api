@@ -37,6 +37,44 @@ export class RoutesController {
 
   async getAllRoutes(req: Request, res: Response): Promise<void> {
     try {
+      // Log basic request info
+      console.log('🚀 Routes API - Request received:', {
+        method: req.method,
+        url: req.url,
+        originalUrl: req.originalUrl,
+        baseUrl: req.baseUrl,
+        path: req.path,
+        query: req.query,
+        params: req.params,
+        headers: {
+          'organization-id': req.headers['organization-id'],
+          'authorization': req.headers.authorization ? 'Bearer [HIDDEN]' : 'Not provided'
+        }
+      });
+
+      // Log all query parameters (filters) received
+      console.log('🔍 Routes API - Filters received:', {
+        query: req.query,
+        status: req.query.status,
+        priority: req.query.priority,
+        search: req.query.search,
+        created_after: req.query.created_after,
+        created_before: req.query.created_before,
+        updated_after: req.query.updated_after,
+        updated_before: req.query.updated_before,
+        min_traffic_delay: req.query.min_traffic_delay,
+        max_traffic_delay: req.query.max_traffic_delay,
+        origin_lat: req.query.origin_lat,
+        origin_lon: req.query.origin_lon,
+        destination_lat: req.query.destination_lat,
+        destination_lon: req.query.destination_lon,
+        radius: req.query.radius,
+        page: req.query.page,
+        limit: req.query.limit,
+        sort_by: req.query.sort_by,
+        sort_order: req.query.sort_order
+      });
+
       // Get organization_id from JWT token or request headers
       const organizationId = req.headers['organization-id'] as string;
       if (!organizationId) {
@@ -60,7 +98,29 @@ export class RoutesController {
         return;
       }
 
-      const routes = await this.routeService.getAllRoutesByOrganization(organization.id);
+      // Extract filters from query parameters
+      const filters = {
+        status: req.query.status,
+        priority: req.query.priority,
+        search: req.query.search,
+        created_after: req.query.created_after,
+        created_before: req.query.created_before,
+        updated_after: req.query.updated_after,
+        updated_before: req.query.updated_before,
+        min_traffic_delay: req.query.min_traffic_delay,
+        max_traffic_delay: req.query.max_traffic_delay,
+        origin_lat: req.query.origin_lat,
+        origin_lon: req.query.origin_lon,
+        destination_lat: req.query.destination_lat,
+        destination_lon: req.query.destination_lon,
+        radius: req.query.radius,
+        page: req.query.page,
+        limit: req.query.limit,
+        sort_by: req.query.sort_by,
+        sort_order: req.query.sort_order
+      };
+
+      const routes = await this.routeService.getAllRoutesByOrganization(organization.id, filters);
       
       res.status(200).json({
         success: true,
