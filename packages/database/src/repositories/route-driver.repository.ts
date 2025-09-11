@@ -56,6 +56,74 @@ export class RouteDriverRepository {
     return routeDriver ? this.mapDbRouteDriverToRouteDriver(routeDriver) : null;
   }
 
+  async findByRouteUuid(routeUuid: string): Promise<RouteDriver[]> {
+    const routeDrivers = await this.knex('route_driver')
+      .join('routes', 'route_driver.route_id', 'routes.id')
+      .where('routes.uuid', routeUuid)
+      .select('route_driver.*')
+      .orderBy('route_driver.assigned_at', 'desc');
+
+    return routeDrivers.map(rd => this.mapDbRouteDriverToRouteDriver(rd));
+  }
+
+  async findByDriverUuid(driverUuid: string): Promise<RouteDriver[]> {
+    const routeDrivers = await this.knex('route_driver')
+      .join('users', 'route_driver.driver_user_id', 'users.id')
+      .where('users.uuid', driverUuid)
+      .select('route_driver.*')
+      .orderBy('route_driver.assigned_at', 'desc');
+
+    return routeDrivers.map(rd => this.mapDbRouteDriverToRouteDriver(rd));
+  }
+
+  async findByRouteUuidWithDetails(routeUuid: string): Promise<RouteDriverWithDetails[]> {
+    const routeDrivers = await this.knex('route_driver')
+      .leftJoin('users', 'route_driver.driver_user_id', 'users.id')
+      .leftJoin('routes', 'route_driver.route_id', 'routes.id')
+      .where('routes.uuid', routeUuid)
+      .select(
+        'route_driver.*',
+        'users.uuid as driver_uuid',
+        'users.name as driver_name',
+        'users.email as driver_email',
+        'users.status as driver_status',
+        'routes.uuid as route_uuid',
+        'routes.route_name',
+        'routes.description as route_description',
+        'routes.origin_name',
+        'routes.destination_name',
+        'routes.status as route_status',
+        'routes.priority as route_priority'
+      )
+      .orderBy('route_driver.assigned_at', 'desc');
+
+    return routeDrivers.map(rd => this.mapDbRouteDriverWithDetailsToRouteDriverWithDetails(rd));
+  }
+
+  async findByDriverUuidWithDetails(driverUuid: string): Promise<RouteDriverWithDetails[]> {
+    const routeDrivers = await this.knex('route_driver')
+      .leftJoin('users', 'route_driver.driver_user_id', 'users.id')
+      .leftJoin('routes', 'route_driver.route_id', 'routes.id')
+      .where('users.uuid', driverUuid)
+      .select(
+        'route_driver.*',
+        'users.uuid as driver_uuid',
+        'users.name as driver_name',
+        'users.email as driver_email',
+        'users.status as driver_status',
+        'routes.uuid as route_uuid',
+        'routes.route_name',
+        'routes.description as route_description',
+        'routes.origin_name',
+        'routes.destination_name',
+        'routes.status as route_status',
+        'routes.priority as route_priority'
+      )
+      .orderBy('route_driver.assigned_at', 'desc');
+
+    return routeDrivers.map(rd => this.mapDbRouteDriverWithDetailsToRouteDriverWithDetails(rd));
+  }
+
   async findByRouteId(routeId: number): Promise<RouteDriver[]> {
     const routeDrivers = await this.knex('route_driver')
       .where('route_id', routeId)
@@ -200,6 +268,36 @@ export class RouteDriverRepository {
       .first();
 
     return Number(count?.count) > 0;
+  }
+
+  async existsByUuid(routeUuid: string, driverUuid: string): Promise<boolean> {
+    const count = await this.knex('route_driver')
+      .join('routes', 'route_driver.route_id', 'routes.id')
+      .join('users', 'route_driver.driver_user_id', 'users.id')
+      .where('routes.uuid', routeUuid)
+      .where('users.uuid', driverUuid)
+      .count('* as count')
+      .first();
+
+    return Number(count?.count) > 0;
+  }
+
+  async getRouteIdFromUuid(routeUuid: string): Promise<number | null> {
+    const route = await this.knex('routes')
+      .where('uuid', routeUuid)
+      .select('id')
+      .first();
+
+    return route ? route.id : null;
+  }
+
+  async getDriverIdFromUuid(driverUuid: string): Promise<number | null> {
+    const driver = await this.knex('users')
+      .where('uuid', driverUuid)
+      .select('id')
+      .first();
+
+    return driver ? driver.id : null;
   }
 
   private mapDbRouteDriverToRouteDriver(dbRouteDriver: any): RouteDriver {
