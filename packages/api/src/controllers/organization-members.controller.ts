@@ -150,6 +150,28 @@ export class OrganizationMembersController {
     }
   }
 
+  static async listUsersByOrganization(req: Request, res: Response) {
+    try {
+      const { organizationUuid } = req.params;
+      const { role } = req.query;
+
+      const org = await OrganizationMemberRepository.getOrganizationByUuid(organizationUuid);
+      if (!org) {
+        return res.status(404).json({ success: false, error: 'Organization not found' });
+      }
+
+      const users = await OrganizationMemberRepository.listUsersByOrganizationUuid(
+        organizationUuid,
+        typeof role === 'string' ? role : undefined
+      );
+
+      res.json({ success: true, data: users });
+    } catch (error) {
+      console.error('Error listing organization users:', error);
+      res.status(500).json({ success: false, error: 'Failed to list organization users' });
+    }
+  }
+
   static async publicCreateWithVerification(req: Request, res: Response) {
     try {
       const { 

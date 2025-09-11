@@ -203,6 +203,74 @@ export class OrganizationMemberRepository {
     return organization || null;
   }
 
+  // List users in an organization (by organization UUID) with optional role filter (by role_name)
+  static async listUsersByOrganizationUuid(
+    organizationUuid: string,
+    roleName?: string
+  ): Promise<Array<{
+    user_uuid: string;
+    email: string;
+    name: string;
+    status: string;
+    member_since: Date;
+    roles: Array<{ role_name: string; uuid?: string }>;
+  }>> {
+    // Base members in org by UUID
+    const members = await db('organization_members')
+      .join('organizations', 'organization_members.organization_id', 'organizations.id')
+      .join('users', 'organization_members.user_id', 'users.id')
+      .where('organizations.uuid', organizationUuid)
+      .where('organization_members.is_active', true)
+      .select(
+        'organization_members.id as member_id',
+        'organization_members.created_at as member_since',
+        'users.uuid as user_uuid',
+        'users.email',
+        'users.name',
+        'users.status'
+      );
+
+    if (members.length === 0) return [];
+
+    // Fetch roles per member (optionally filter by role name)
+    const memberIds = members.map(m => m.member_id);
+    const rolesQuery = db('member_roles')
+      .whereIn('organization_member_id', memberIds)
+      .where('is_active', true)
+      .select('organization_member_id', 'role_name');
+
+    if (roleName) {
+      rolesQuery.andWhere('role_name', roleName);
+    }
+
+    const roles = await rolesQuery;
+
+    // Map roles by member
+    const memberIdToRoles = new Map<number, Array<{ role_name: string }>>();
+    for (const r of roles) {
+      const arr = memberIdToRoles.get(r.organization_member_id) || [];
+      arr.push({ role_name: r.role_name });
+      memberIdToRoles.set(r.organization_member_id, arr);
+    }
+
+    // Build result, applying role filter: if roleName provided, only include members having that role
+    const result = members
+      .filter(m => {
+        if (!roleName) return true;
+        const r = memberIdToRoles.get(m.member_id) || [];
+        return r.some(x => x.role_name === roleName);
+      })
+      .map(m => ({
+        user_uuid: m.user_uuid,
+        email: m.email,
+        name: m.name,
+        status: m.status,
+        member_since: m.member_since,
+        roles: (memberIdToRoles.get(m.member_id) || []).map(x => ({ role_name: x.role_name }))
+      }));
+
+    return result;
+  }
   // Create user and member with transaction
   static async createUserAndMemberWithTransaction(data: {
     organization_id: number;

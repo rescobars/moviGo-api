@@ -323,4 +323,7 @@ router.post('/', authMiddleware, OrganizationMembersController.createMember);
  */
 router.post('/public-create-with-verification', OrganizationMembersController.publicCreateWithVerification);
 
+// List users in an organization by organization UUID, optional role filter (?role=DRIVER)
+router.get('/organization/:organizationUuid/users', authMiddleware, OrganizationMembersController.listUsersByOrganization);
+
 export default router;
