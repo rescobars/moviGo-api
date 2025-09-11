@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { UserRepository } from '../../../database/src/repositories/user-repository';
 import { AuthTokenRepository } from '../../../database/src/repositories/auth-token.repository';
+import { AuthRepository } from '../../../database/src/repositories/auth.repository';
 import { EmailService } from '../services/email.service';
 import { SessionService } from '../services/session.service';
 import { generateToken } from '../../../auth/src/jwt';
@@ -138,6 +139,7 @@ export class AuthController {
       });
     }
   }
+
 
   static async logout(req: Request, res: Response) {
     try {
@@ -354,16 +356,20 @@ export class AuthController {
         };
       }
 
+      // Use AuthRepository to handle verification and activation
+      const { user: updatedUser, member } = await AuthRepository.verifyCodeAndActivateUser(code, authToken.user_id);
+
       // Create session with device information
       const deviceInfo = SessionService.extractDeviceInfo(req);
-      const session = await SessionService.createSession(user.id, deviceInfo);
+      const session = await SessionService.createSession(updatedUser.id, deviceInfo);
 
-      // Mark token as used only after successful session creation
-      await AuthTokenRepository.markAsUsed(authToken.token);
+      const message = authToken.type === 'EMAIL_VERIFICATION' 
+        ? 'Email verified successfully. Account activated.'
+        : 'Login successful';
 
       return {
         success: true,
-        message: 'Login successful',
+        message,
         data: {
           user: session.user,
           organizations: session.organizations,
@@ -375,7 +381,12 @@ export class AuthController {
       };
     } catch (error) {
       console.error('Error in code verification:', error);
-      throw error;
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to verify code',
+        statusCode: 400
+      };
     }
   }
+
 }
