@@ -101,95 +101,126 @@ export class RouteRepository {
     return updatedRoute ? this.mapDbRouteToRoute(updatedRoute) : null;
   }
 
-  async findAllWithOrdersByOrganization(organizationId: number, filters?: any): Promise<any[]> {
+  async findAllWithOrdersByOrganization(organizationId: number, filters?: any): Promise<{ routes: any[], pagination: any }> {
     console.log('🔍 RouteRepository - Applying filters:', filters);
     
-    let query = this.knex('routes').where('organization_id', organizationId);
+    // Build base query for counting
+    let countQuery = this.knex('routes').where('organization_id', organizationId);
+    let dataQuery = this.knex('routes').where('organization_id', organizationId);
 
-    // Apply filters
+    // Apply filters to both queries
     if (filters) {
       // Status filter
       if (filters.status) {
         const statusArray = Array.isArray(filters.status) ? filters.status : [filters.status];
-        query = query.whereIn('status', statusArray);
+        countQuery = countQuery.whereIn('status', statusArray);
+        dataQuery = dataQuery.whereIn('status', statusArray);
       }
 
       // Priority filter
       if (filters.priority) {
         const priorityArray = Array.isArray(filters.priority) ? filters.priority : [filters.priority];
-        query = query.whereIn('priority', priorityArray);
+        countQuery = countQuery.whereIn('priority', priorityArray);
+        dataQuery = dataQuery.whereIn('priority', priorityArray);
       }
 
       // Search filter (search in route_name, description, origin_name, destination_name)
       if (filters.search) {
-        query = query.where(function() {
+        const searchCondition = function() {
           this.where('route_name', 'ilike', `%${filters.search}%`)
             .orWhere('description', 'ilike', `%${filters.search}%`)
             .orWhere('origin_name', 'ilike', `%${filters.search}%`)
             .orWhere('destination_name', 'ilike', `%${filters.search}%`);
-        });
+        };
+        countQuery = countQuery.where(searchCondition);
+        dataQuery = dataQuery.where(searchCondition);
       }
 
       // Date filters
       if (filters.created_after) {
-        query = query.where('created_at', '>=', filters.created_after);
+        countQuery = countQuery.where('created_at', '>=', filters.created_after);
+        dataQuery = dataQuery.where('created_at', '>=', filters.created_after);
       }
       if (filters.created_before) {
-        query = query.where('created_at', '<=', filters.created_before);
+        countQuery = countQuery.where('created_at', '<=', filters.created_before);
+        dataQuery = dataQuery.where('created_at', '<=', filters.created_before);
       }
       if (filters.updated_after) {
-        query = query.where('updated_at', '>=', filters.updated_after);
+        countQuery = countQuery.where('updated_at', '>=', filters.updated_after);
+        dataQuery = dataQuery.where('updated_at', '>=', filters.updated_after);
       }
       if (filters.updated_before) {
-        query = query.where('updated_at', '<=', filters.updated_before);
+        countQuery = countQuery.where('updated_at', '<=', filters.updated_before);
+        dataQuery = dataQuery.where('updated_at', '<=', filters.updated_before);
       }
 
       // Traffic delay filters
       if (filters.min_traffic_delay) {
-        query = query.where('traffic_delay', '>=', filters.min_traffic_delay);
+        countQuery = countQuery.where('traffic_delay', '>=', filters.min_traffic_delay);
+        dataQuery = dataQuery.where('traffic_delay', '>=', filters.min_traffic_delay);
       }
       if (filters.max_traffic_delay) {
-        query = query.where('traffic_delay', '<=', filters.max_traffic_delay);
+        countQuery = countQuery.where('traffic_delay', '<=', filters.max_traffic_delay);
+        dataQuery = dataQuery.where('traffic_delay', '<=', filters.max_traffic_delay);
       }
 
       // Location filters (basic implementation)
       if (filters.origin_lat && filters.origin_lon && filters.radius) {
-        // Simple radius search (you might want to implement proper geospatial queries)
         const lat = parseFloat(filters.origin_lat);
         const lon = parseFloat(filters.origin_lon);
         const radius = parseFloat(filters.radius);
         
-        query = query.where(function() {
+        const locationCondition = function() {
           this.whereRaw(`
             (6371 * acos(cos(radians(?)) * cos(radians(origin_lat)) * 
             cos(radians(origin_lon) - radians(?)) + sin(radians(?)) * 
             sin(radians(origin_lat)))) <= ?
           `, [lat, lon, lat, radius]);
-        });
+        };
+        countQuery = countQuery.where(locationCondition);
+        dataQuery = dataQuery.where(locationCondition);
       }
 
       // Sorting
       const sortBy = filters.sort_by || 'created_at';
       const sortOrder = filters.sort_order || 'desc';
-      query = query.orderBy(sortBy, sortOrder);
+      dataQuery = dataQuery.orderBy(sortBy, sortOrder);
 
       // Pagination
       if (filters.limit) {
         const limit = parseInt(filters.limit);
-        query = query.limit(limit);
+        dataQuery = dataQuery.limit(limit);
         
         if (filters.page) {
           const page = parseInt(filters.page);
           const offset = (page - 1) * limit;
-          query = query.offset(offset);
+          dataQuery = dataQuery.offset(offset);
         }
       }
     } else {
       // Default sorting if no filters
-      query = query.orderBy('created_at', 'desc');
+      dataQuery = dataQuery.orderBy('created_at', 'desc');
     }
 
-    const routes = await query;
+    // Execute both queries in parallel
+    const [routes, totalResult] = await Promise.all([
+      dataQuery,
+      countQuery.count('* as total').first()
+    ]);
+
+    const total = parseInt(totalResult.total);
+    const page = filters?.page ? parseInt(filters.page) : 1;
+    const limit = filters?.limit ? parseInt(filters.limit) : total;
+    const totalPages = Math.ceil(total / limit);
+
+    const pagination = {
+      total,
+      page,
+      limit,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    };
 
     // Para cada ruta, obtener los orders asociados
     const routesWithOrders = await Promise.all(
@@ -234,7 +265,10 @@ export class RouteRepository {
       })
     );
 
-    return routesWithOrders;
+    return {
+      routes: routesWithOrders,
+      pagination
+    };
   }
 
   private mapDbRouteToRoute(dbRoute: any): Route {

@@ -56,7 +56,7 @@ export class RouteService {
     });
   }
 
-  async getAllRoutesByOrganization(organizationId: number, filters?: any): Promise<any[]> {
+  async getAllRoutesByOrganization(organizationId: number, filters?: any): Promise<{ routes: any[], pagination: any }> {
     return await this.routeRepository.findAllWithOrdersByOrganization(organizationId, filters);
   }
 }

@@ -120,11 +120,12 @@ export class RoutesController {
         sort_order: req.query.sort_order
       };
 
-      const routes = await this.routeService.getAllRoutesByOrganization(organization.id, filters);
+      const result = await this.routeService.getAllRoutesByOrganization(organization.id, filters);
       
       res.status(200).json({
         success: true,
-        data: routes,
+        data: result.routes,
+        pagination: result.pagination,
         message: 'Routes retrieved successfully'
       });
     } catch (error) {
