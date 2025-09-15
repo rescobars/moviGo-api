@@ -87,8 +87,91 @@ export const OrderDataForInsertSchema = z.object({
   delivery_lng: z.number().optional()
 });
 
+// Schema para validar filtros de pedidos
+export const OrderFiltersSchema = z.object({
+  status: z.union([
+    z.enum(['PENDING', 'ASSIGNED', 'IN_ROUTE', 'COMPLETED', 'CANCELLED']),
+    z.array(z.enum(['PENDING', 'ASSIGNED', 'IN_ROUTE', 'COMPLETED', 'CANCELLED'])),
+    z.literal('all') // Permitir 'all' pero lo convertiremos a undefined
+  ]).optional().transform((val) => {
+    if (val === 'all') return undefined;
+    return val;
+  }),
+  search: z.string().optional(),
+  created_after: z.string().datetime().optional(),
+  created_before: z.string().datetime().optional(),
+  updated_after: z.string().datetime().optional(),
+  updated_before: z.string().datetime().optional(),
+  min_amount: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === 'string') {
+      const num = parseFloat(val);
+      return isNaN(num) ? undefined : num;
+    }
+    return val;
+  }),
+  max_amount: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === 'string') {
+      const num = parseFloat(val);
+      return isNaN(num) ? undefined : num;
+    }
+    return val;
+  }),
+  pickup_lat: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === 'string') {
+      const num = parseFloat(val);
+      return isNaN(num) ? undefined : num;
+    }
+    return val;
+  }),
+  pickup_lon: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === 'string') {
+      const num = parseFloat(val);
+      return isNaN(num) ? undefined : num;
+    }
+    return val;
+  }),
+  delivery_lat: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === 'string') {
+      const num = parseFloat(val);
+      return isNaN(num) ? undefined : num;
+    }
+    return val;
+  }),
+  delivery_lon: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === 'string') {
+      const num = parseFloat(val);
+      return isNaN(num) ? undefined : num;
+    }
+    return val;
+  }),
+  radius: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === 'string') {
+      const num = parseFloat(val);
+      return isNaN(num) ? undefined : num;
+    }
+    return val;
+  }),
+  page: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === 'string') {
+      const num = parseInt(val);
+      return isNaN(num) ? 1 : Math.max(1, num);
+    }
+    return val || 1;
+  }),
+  limit: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (typeof val === 'string') {
+      const num = parseInt(val);
+      return isNaN(num) ? 10 : Math.max(1, Math.min(100, num)); // Máximo 100 elementos
+    }
+    return val || 10;
+  }),
+  sort_by: z.enum(['created_at', 'updated_at', 'total_amount', 'order_number', 'status']).optional(),
+  sort_order: z.enum(['asc', 'desc']).optional()
+});
+
 export type Order = z.infer<typeof OrderSchema>;
 export type CreateOrder = z.infer<typeof CreateOrderSchema>;
 export type UpdateOrder = z.infer<typeof UpdateOrderSchema>;
 export type OrderDataForInsert = z.infer<typeof OrderDataForInsertSchema>;
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;
+export type OrderFilters = z.infer<typeof OrderFiltersSchema>;

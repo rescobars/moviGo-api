@@ -10,6 +10,136 @@ export class OrderRepository {
       .orderBy('orders.created_at', 'desc');
   }
 
+  static async findAllWithPagination(organizationUuid: string, filters?: any): Promise<{ orders: Order[], pagination: any }> {
+    console.log('🔍 OrderRepository - Applying filters:', filters);
+    
+    // Get organization ID first
+    const organization = await db('organizations')
+      .select('id')
+      .where('uuid', organizationUuid)
+      .first();
+    
+    if (!organization) {
+      throw new Error(`Organization with UUID ${organizationUuid} not found`);
+    }
+
+    // Build base query for counting
+    let countQuery = db('orders').where('organization_id', organization.id);
+    let dataQuery = db('orders').where('organization_id', organization.id);
+
+    // Apply filters to both queries
+    if (filters) {
+      // Status filter
+      if (filters.status) {
+        const statusArray = Array.isArray(filters.status) ? filters.status : [filters.status];
+        countQuery = countQuery.whereIn('status', statusArray);
+        dataQuery = dataQuery.whereIn('status', statusArray);
+      }
+
+      // Search filter (search in order_number, description, pickup_address, delivery_address)
+      if (filters.search) {
+        const searchCondition = function() {
+          this.where('order_number', 'ilike', `%${filters.search}%`)
+            .orWhere('description', 'ilike', `%${filters.search}%`)
+            .orWhere('pickup_address', 'ilike', `%${filters.search}%`)
+            .orWhere('delivery_address', 'ilike', `%${filters.search}%`);
+        };
+        countQuery = countQuery.where(searchCondition);
+        dataQuery = dataQuery.where(searchCondition);
+      }
+
+      // Date filters
+      if (filters.created_after) {
+        countQuery = countQuery.where('created_at', '>=', filters.created_after);
+        dataQuery = dataQuery.where('created_at', '>=', filters.created_after);
+      }
+      if (filters.created_before) {
+        countQuery = countQuery.where('created_at', '<=', filters.created_before);
+        dataQuery = dataQuery.where('created_at', '<=', filters.created_before);
+      }
+      if (filters.updated_after) {
+        countQuery = countQuery.where('updated_at', '>=', filters.updated_after);
+        dataQuery = dataQuery.where('updated_at', '>=', filters.updated_after);
+      }
+      if (filters.updated_before) {
+        countQuery = countQuery.where('updated_at', '<=', filters.updated_before);
+        dataQuery = dataQuery.where('updated_at', '<=', filters.updated_before);
+      }
+
+      // Amount filters
+      if (filters.min_amount) {
+        countQuery = countQuery.where('total_amount', '>=', filters.min_amount);
+        dataQuery = dataQuery.where('total_amount', '>=', filters.min_amount);
+      }
+      if (filters.max_amount) {
+        countQuery = countQuery.where('total_amount', '<=', filters.max_amount);
+        dataQuery = dataQuery.where('total_amount', '<=', filters.max_amount);
+      }
+
+      // Location filters (pickup location)
+      if (filters.pickup_lat && filters.pickup_lon && filters.radius) {
+        const lat = parseFloat(filters.pickup_lat);
+        const lon = parseFloat(filters.pickup_lon);
+        const radius = parseFloat(filters.radius);
+        
+        const locationCondition = function() {
+          this.whereRaw(`
+            (6371 * acos(cos(radians(?)) * cos(radians(pickup_lat)) * 
+            cos(radians(pickup_lon) - radians(?)) + sin(radians(?)) * 
+            sin(radians(pickup_lat)))) <= ?
+          `, [lat, lon, lat, radius]);
+        };
+        countQuery = countQuery.where(locationCondition);
+        dataQuery = dataQuery.where(locationCondition);
+      }
+
+      // Sorting
+      const sortBy = filters.sort_by || 'created_at';
+      const sortOrder = filters.sort_order || 'desc';
+      dataQuery = dataQuery.orderBy(sortBy, sortOrder);
+
+      // Pagination
+      if (filters.limit) {
+        const limit = parseInt(filters.limit);
+        dataQuery = dataQuery.limit(limit);
+        
+        if (filters.page) {
+          const page = parseInt(filters.page);
+          const offset = (page - 1) * limit;
+          dataQuery = dataQuery.offset(offset);
+        }
+      }
+    } else {
+      // Default sorting if no filters
+      dataQuery = dataQuery.orderBy('created_at', 'desc');
+    }
+
+    // Execute both queries in parallel
+    const [orders, totalResult] = await Promise.all([
+      dataQuery,
+      countQuery.count('* as total').first()
+    ]);
+
+    const total = parseInt(totalResult.total);
+    const page = filters?.page ? parseInt(filters.page) : 1;
+    const limit = filters?.limit ? parseInt(filters.limit) : total;
+    const totalPages = Math.ceil(total / limit);
+
+    const pagination = {
+      total,
+      page,
+      limit,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    };
+
+    return {
+      orders,
+      pagination
+    };
+  }
+
   static async findPending(organizationUuid: string): Promise<Order[]> {
     return db('orders')
       .join('organizations', 'orders.organization_id', 'organizations.id')

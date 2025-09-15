@@ -10,9 +10,28 @@ export class RouteDriverService {
   ) {}
 
   async assignDriverToRoute(routeUuid: string, driverUuid: string, routeDriverData: CreateRouteDriverRequest): Promise<RouteDriver> {
+    // Validate inputs before processing
+    if (!routeUuid || routeUuid === 'undefined' || routeUuid === 'null') {
+      throw new Error('Valid route UUID is required');
+    }
+
+    if (!driverUuid || driverUuid === 'undefined' || driverUuid === 'null') {
+      throw new Error('Valid driver UUID is required');
+    }
+
+    console.log('🔍 RouteDriverService - Looking up IDs:', {
+      routeUuid,
+      driverUuid
+    });
+
     // Get route and driver organization member IDs from UUIDs
     const routeId = await this.routeDriverRepository.getRouteIdFromUuid(routeUuid);
     const driverOrganizationMemberId = await this.routeDriverRepository.getDriverOrganizationMemberIdFromUuid(driverUuid);
+
+    console.log('🔍 RouteDriverService - Found IDs:', {
+      routeId,
+      driverOrganizationMemberId
+    });
 
     if (!routeId) {
       throw new Error(`Route with UUID ${routeUuid} not found`);
