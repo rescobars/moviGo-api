@@ -97,7 +97,6 @@ export class RabbitMQService {
       await this.channelWrapper.publish(this.exchangeName, routingKey, messageBuffer, {
         persistent: true,
       });
-      console.log(`📤 Message published to ${routingKey}:`, message.type);
       return true;
     } catch (error) {
       console.error('❌ Error publishing message:', error);
@@ -116,8 +115,6 @@ export class RabbitMQService {
 
         try {
           const message: RabbitMQMessage = JSON.parse(msg.content.toString());
-          console.log(`📥 Message received:`, message.type);
-
           // Procesamiento asíncrono seguro con ack después de terminar
           await callback(message);
           channel.ack(msg);
