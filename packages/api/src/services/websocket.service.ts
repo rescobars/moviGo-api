@@ -46,6 +46,7 @@ export class WebSocketService {
 
       // Handle joining routes
       socket.on('join_route', (routeId: string) => {
+        console.log(`🚗 User ${socket.id} joined route: ${routeId}`);
         this.joinRoute(socket, routeId);
       });
 
@@ -134,11 +135,16 @@ export class WebSocketService {
   }
 
   private setupRabbitMQConsumer(): void {
+    console.log('🐰 Setting up RabbitMQ consumer...');
     rabbitMQService.consumeMessages(async (message: RabbitMQMessage) => {
+      console.log('📥 RabbitMQ message received:', message.type);
       // Solo procesar transmisiones de drivers
       if (message.type === 'transmission.received' && message.data) {
+        console.log('✅ Processing transmission:', message.data.driverId);
         const transmission: DriverTransmission = message.data;
         await this.broadcastDriverTransmission(transmission);
+      } else {
+        console.log('❌ Ignoring message type:', message.type);
       }
     });
   }
@@ -188,6 +194,7 @@ export class WebSocketService {
   }
 
   public sendToRoute(routeId: string, event: string, data: any): void {
+    console.log(`🚗 Sending to route: ${routeId}`);
     this.io?.to(`route_${routeId}`).emit(event, data);
   }
 
