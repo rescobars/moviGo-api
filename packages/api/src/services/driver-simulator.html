@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Driver Simulator</title>
+</head>
+<body>
+    <h1>🚗 Driver Simulator</h1>
+    <button id="startBtn">Iniciar Simulación</button>
+    <button id="stopBtn">Detener Simulación</button>
+    <div id="status">Detenido</div>
+    <div id="log"></div>
+
+    <script>
+        // Configuración
+        const API_URL = 'http://localhost:3000/api/websocket/test/driver-transmission';
+        const DRIVER_ID = '550e8400-e29b-41d4-a716-446655440000';
+        const ROUTE_ID = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+        const ORGANIZATION_ID = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+
+        // Puntos de la ruta
+        const START_POINT = { lat: 14.4672566, lng: -90.5082862 };
+        const END_POINT = { lat: 14.4794156, lng: -90.4883578 };
+
+        let currentPoint = 0;
+        let isRunning = false;
+        let intervalId = null;
+
+        // Generar punto en la ruta
+        function getCurrentPosition() {
+            const progress = currentPoint / 100; // 100 puntos total
+            const lat = START_POINT.lat + (END_POINT.lat - START_POINT.lat) * progress;
+            const lng = START_POINT.lng + (END_POINT.lng - START_POINT.lng) * progress;
+            
+            return {
+                lat: lat + (Math.random() - 0.5) * 0.0001, // Pequeña variación
+                lng: lng + (Math.random() - 0.5) * 0.0001,
+                accuracy: 5 + Math.random() * 10,
+                speed: 25 + Math.random() * 20,
+                heading: Math.random() * 360
+            };
+        }
+
+        // Enviar transmisión
+        async function sendTransmission() {
+            const position = getCurrentPosition();
+            
+            const data = {
+                driverId: DRIVER_ID,
+                routeId: ROUTE_ID,
+                organizationId: ORGANIZATION_ID,
+                latitude: position.lat,
+                longitude: position.lng,
+                status: 'DRIVING',
+                accuracy: position.accuracy,
+                speed: position.speed,
+                heading: position.heading,
+                batteryLevel: 80 + Math.random() * 20,
+                signalStrength: 70 + Math.random() * 30,
+                appVersion: '1.0.0',
+                deviceInfo: 'Android 13',
+                networkType: '4G'
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    log(`✅ Transmisión enviada - Punto ${currentPoint}/100`);
+                } else {
+                    log(`❌ Error: ${result.message}`);
+                }
+            } catch (error) {
+                log(`❌ Error de conexión: ${error.message}`);
+            }
+
+            currentPoint++;
+            if (currentPoint >= 100) {
+                currentPoint = 0; // Reiniciar ruta
+            }
+        }
+
+        // Iniciar simulación
+        function startSimulation() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            document.getElementById('status').textContent = '�� Simulando...';
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            
+            intervalId = setInterval(sendTransmission, 1000); // Cada 1 segundo
+            log('🚀 Simulación iniciada');
+        }
+
+        // Detener simulación
+        function stopSimulation() {
+            if (!isRunning) return;
+            
+            isRunning = false;
+            clearInterval(intervalId);
+            document.getElementById('status').textContent = '⏹️ Detenido';
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            
+            log('⏹️ Simulación detenida');
+        }
+
+        // Mostrar log
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', startSimulation);
+        document.getElementById('stopBtn').addEventListener('click', stopSimulation);
+    </script>
+
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+        #status { font-size: 18px; margin: 10px 0; }
+        #log { 
+            background: #f0f0f0; 
+            padding: 10px; 
+            height: 300px; 
+            overflow-y: auto; 
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+    </style>
+</body>
+</html>
