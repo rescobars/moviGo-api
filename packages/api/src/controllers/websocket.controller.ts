@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { webSocketService } from '../services/websocket.service';
 import { rabbitMQService } from '../services/rabbitmq.service';
+import { DriverTransmission, DriverStatus, NetworkType, validateDriverTransmission } from '../types';
 
 export class WebSocketController {
   // Get WebSocket connection status
@@ -9,11 +10,7 @@ export class WebSocketController {
       const status = {
         websocket: {
           connected: webSocketService.getConnectedUsersCount(),
-          users: webSocketService.getConnectedUsers().map(user => ({
-            socketId: user.id,
-            userId: user.userId,
-            organizationId: user.organizationId
-          }))
+          users: webSocketService.getConnectedUsers()
         },
         rabbitmq: {
           connected: rabbitMQService.isConnected()
@@ -34,45 +31,82 @@ export class WebSocketController {
     }
   };
 
-  // Send test message to RabbitMQ
-  public sendTestMessage = async (req: Request, res: Response): Promise<void> => {
+  // Send test driver transmission
+  public sendTestDriverTransmission = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { type, data, routingKey } = req.body;
+      const { driverId, routeId, latitude, longitude, status, networkType } = req.body;
 
-      if (!type || !data) {
+      if (!driverId || !routeId || !latitude || !longitude) {
         res.status(400).json({
           success: false,
-          message: 'Type and data are required'
+          message: 'driverId, routeId, latitude, and longitude are required'
         });
         return;
       }
 
+      // Validar y convertir los datos usando Zod
+      const transmissionData = {
+        driverId,
+        routeId,
+        vehicleId: req.body.vehicleId,
+        location: {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
+          accuracy: req.body.accuracy || 10,
+          altitude: req.body.altitude,
+          speed: req.body.speed,
+          heading: req.body.heading
+        },
+        status: status ? status.toUpperCase() : DriverStatus.DRIVING,
+        batteryLevel: req.body.batteryLevel,
+        signalStrength: req.body.signalStrength,
+        timestamp: new Date(),
+        metadata: {
+          appVersion: req.body.appVersion || '1.0.0',
+          deviceInfo: req.body.deviceInfo,
+          networkType: networkType ? networkType.toUpperCase() : NetworkType.UNKNOWN
+        }
+      };
+
+      // Validar con Zod
+      const transmission = validateDriverTransmission(transmissionData);
+
       const message = {
-        type,
-        data,
+        type: 'transmission.received',
+        data: transmission,
         timestamp: new Date()
       };
 
-      const routing = routingKey || `movigo.${type}`;
-      const published = await rabbitMQService.publishMessage(routing, message);
+      const published = await rabbitMQService.publishMessage('movigo.transmission.received', message);
 
       if (published) {
         res.json({
           success: true,
-          message: 'Test message sent successfully',
-          data: { type, routingKey: routing }
+          message: 'Test driver transmission sent successfully',
+          data: { transmission }
         });
       } else {
         res.status(500).json({
           success: false,
-          message: 'Failed to publish message to RabbitMQ'
+          message: 'Failed to publish driver transmission to RabbitMQ'
         });
       }
     } catch (error) {
-      console.error('Error sending test message:', error);
+      console.error('Error sending test driver transmission:', error);
+      
+      // Manejar errores de validación de Zod
+      if (error instanceof Error && error.name === 'ZodError') {
+        res.status(400).json({
+          success: false,
+          message: 'Validation error',
+          error: error.message
+        });
+        return;
+      }
+
       res.status(500).json({
         success: false,
-        message: 'Error sending test message',
+        message: 'Error sending test driver transmission',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -82,21 +116,19 @@ export class WebSocketController {
   public sendToUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const { userId, event, data } = req.body;
-
-      if (!userId || !event) {
-        res.status(400).json({
-          success: false,
-          message: 'userId and event are required'
+      if (!userId || !event || !data) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'userId, event, and data are required' 
         });
         return;
       }
-
+      
       webSocketService.sendToUser(userId, event, data);
-
-      res.json({
-        success: true,
-        message: 'Message sent to user successfully',
-        data: { userId, event }
+      res.json({ 
+        success: true, 
+        message: `Message sent to user ${userId}`, 
+        data: { event, data } 
       });
     } catch (error) {
       console.error('Error sending message to user:', error);
@@ -108,55 +140,23 @@ export class WebSocketController {
     }
   };
 
-  // Send message to organization
-  public sendToOrganization = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { organizationId, event, data } = req.body;
-
-      if (!organizationId || !event) {
-        res.status(400).json({
-          success: false,
-          message: 'organizationId and event are required'
-        });
-        return;
-      }
-
-      webSocketService.sendToOrganization(organizationId, event, data);
-
-      res.json({
-        success: true,
-        message: 'Message sent to organization successfully',
-        data: { organizationId, event }
-      });
-    } catch (error) {
-      console.error('Error sending message to organization:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error sending message to organization',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  };
-
-  // Send message to route
+  // Send message to specific route
   public sendToRoute = async (req: Request, res: Response): Promise<void> => {
     try {
       const { routeId, event, data } = req.body;
-
-      if (!routeId || !event) {
-        res.status(400).json({
-          success: false,
-          message: 'routeId and event are required'
+      if (!routeId || !event || !data) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'routeId, event, and data are required' 
         });
         return;
       }
-
+      
       webSocketService.sendToRoute(routeId, event, data);
-
-      res.json({
-        success: true,
-        message: 'Message sent to route successfully',
-        data: { routeId, event }
+      res.json({ 
+        success: true, 
+        message: `Message sent to route ${routeId}`, 
+        data: { event, data } 
       });
     } catch (error) {
       console.error('Error sending message to route:', error);
@@ -168,31 +168,29 @@ export class WebSocketController {
     }
   };
 
-  // Broadcast message to all connected clients
-  public broadcast = async (req: Request, res: Response): Promise<void> => {
+  // Send message to specific organization
+  public sendToOrganization = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { event, data } = req.body;
-
-      if (!event) {
-        res.status(400).json({
-          success: false,
-          message: 'event is required'
+      const { organizationId, event, data } = req.body;
+      if (!organizationId || !event || !data) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'organizationId, event, and data are required' 
         });
         return;
       }
-
-      webSocketService.broadcastToAll(event, data);
-
-      res.json({
-        success: true,
-        message: 'Message broadcasted successfully',
-        data: { event }
+      
+      webSocketService.sendToOrganization(organizationId, event, data);
+      res.json({ 
+        success: true, 
+        message: `Message sent to organization ${organizationId}`, 
+        data: { event, data } 
       });
     } catch (error) {
-      console.error('Error broadcasting message:', error);
+      console.error('Error sending message to organization:', error);
       res.status(500).json({
         success: false,
-        message: 'Error broadcasting message',
+        message: 'Error sending message to organization',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }

@@ -52,8 +52,8 @@ export class RabbitMQService {
     });
 
     this.connection.on('connect', () => console.log('✅ Connected to RabbitMQ'));
-    this.connection.on('disconnect', (params) =>
-      console.log('❌ Disconnected from RabbitMQ:', params.err.stack)
+    this.connection.on('disconnect', (params: any) =>
+      console.log('❌ Disconnected from RabbitMQ:', params.err?.stack)
     );
   }
 

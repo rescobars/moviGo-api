@@ -1,18 +1,19 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { RabbitMQMessage, rabbitMQService } from './rabbitmq.service';
+import { DriverTransmission } from '../types';
 
 export interface SocketUser {
   id: string;
   userId?: string;
   organizationId?: string;
-  socket: Socket;
 }
 
 export class WebSocketService {
   private io: SocketIOServer | null = null;
-  private connectedUsers: Map<string, SocketUser> = new Map();
-  private userSockets: Map<string, Set<string>> = new Map(); // userId -> Set of socketIds
+  private connectedUsers = new Map<string, SocketUser>(); // socket.id -> SocketUser
+  private userSockets = new Map<string, Set<string>>(); // userId -> Set<socket.id>
+  private organizationSockets = new Map<string, Set<string>>(); // organizationId -> Set<socket.id>
 
   constructor() {
     this.setupRabbitMQConsumer();
@@ -29,7 +30,7 @@ export class WebSocketService {
     });
 
     this.setupEventHandlers();
-    console.log('🚀 WebSocket service initialized');
+    console.log('🚀 WebSocket service initialized with room management');
   }
 
   private setupEventHandlers(): void {
@@ -38,105 +39,94 @@ export class WebSocketService {
     this.io.on('connection', (socket: Socket) => {
       console.log(`🔌 Client connected: ${socket.id}`);
 
-      // Handle user authentication/identification
-      socket.on('authenticate', (data: { userId?: string; organizationId?: string }) => {
+      // Handle authentication
+      socket.on('authenticate', (data: { userId: string; organizationId?: string }) => {
         this.authenticateUser(socket, data);
       });
 
-      // Handle joining organization rooms
-      socket.on('join_organization', (organizationId: string) => {
-        this.joinOrganization(socket, organizationId);
-      });
-
-      // Handle leaving organization rooms
-      socket.on('leave_organization', (organizationId: string) => {
-        this.leaveOrganization(socket, organizationId);
-      });
-
-      // Handle joining route-specific rooms
+      // Handle joining routes
       socket.on('join_route', (routeId: string) => {
         this.joinRoute(socket, routeId);
       });
 
-      // Handle leaving route-specific rooms
+      // Handle leaving routes
       socket.on('leave_route', (routeId: string) => {
         this.leaveRoute(socket, routeId);
       });
 
-      // Handle custom events
-      socket.on('subscribe_event', (eventType: string) => {
-        this.subscribeToEvent(socket, eventType);
-      });
-
       // Handle disconnection
       socket.on('disconnect', () => {
-        this.handleDisconnection(socket);
+        this.onDisconnect(socket);
       });
     });
   }
 
-  private authenticateUser(socket: Socket, data: { userId?: string; organizationId?: string }): void {
-    const user: SocketUser = {
-      id: socket.id,
-      userId: data.userId,
-      organizationId: data.organizationId,
-      socket
-    };
-
-    this.connectedUsers.set(socket.id, user);
-
-    if (data.userId) {
-      if (!this.userSockets.has(data.userId)) {
-        this.userSockets.set(data.userId, new Set());
-      }
-      this.userSockets.get(data.userId)!.add(socket.id);
+  private authenticateUser(socket: Socket, data: { userId: string; organizationId?: string }): void {
+    const { userId, organizationId } = data;
+    if (!userId) {
+      socket.emit('auth_error', { message: 'User ID is required for authentication' });
+      socket.disconnect(true);
+      return;
     }
 
-    socket.emit('authenticated', { success: true, socketId: socket.id });
-    console.log(`👤 User authenticated: ${data.userId || 'anonymous'} (${socket.id})`);
-  }
+    const user: SocketUser = { id: socket.id, userId, organizationId };
+    this.connectedUsers.set(socket.id, user);
 
-  private joinOrganization(socket: Socket, organizationId: string): void {
-    socket.join(`org_${organizationId}`);
-    socket.emit('joined_organization', { organizationId });
-    console.log(`🏢 Socket ${socket.id} joined organization: ${organizationId}`);
-  }
+    // Add socket to user's set of sockets
+    if (!this.userSockets.has(userId)) {
+      this.userSockets.set(userId, new Set());
+    }
+    this.userSockets.get(userId)?.add(socket.id);
 
-  private leaveOrganization(socket: Socket, organizationId: string): void {
-    socket.leave(`org_${organizationId}`);
-    socket.emit('left_organization', { organizationId });
-    console.log(`🏢 Socket ${socket.id} left organization: ${organizationId}`);
+    // Join organization room if provided
+    if (organizationId) {
+      socket.join(`org_${organizationId}`);
+      if (!this.organizationSockets.has(organizationId)) {
+        this.organizationSockets.set(organizationId, new Set());
+      }
+      this.organizationSockets.get(organizationId)?.add(socket.id);
+    }
+
+    socket.emit('authenticated', { userId, organizationId });
+    console.log(`✅ User ${userId} authenticated on socket ${socket.id}`);
   }
 
   private joinRoute(socket: Socket, routeId: string): void {
+    const user = this.connectedUsers.get(socket.id);
+    if (!user || !user.userId) {
+      socket.emit('error', { message: 'Authentication required to join a route' });
+      return;
+    }
     socket.join(`route_${routeId}`);
     socket.emit('joined_route', { routeId });
-    console.log(`🛣️ Socket ${socket.id} joined route: ${routeId}`);
+    console.log(`🚪 User ${user.userId} joined route room: route_${routeId}`);
   }
 
   private leaveRoute(socket: Socket, routeId: string): void {
+    const user = this.connectedUsers.get(socket.id);
+    if (!user || !user.userId) {
+      socket.emit('error', { message: 'Authentication required to leave a route' });
+      return;
+    }
     socket.leave(`route_${routeId}`);
     socket.emit('left_route', { routeId });
-    console.log(`🛣️ Socket ${socket.id} left route: ${routeId}`);
+    console.log(`🚶 User ${user.userId} left route room: route_${routeId}`);
   }
 
-  private subscribeToEvent(socket: Socket, eventType: string): void {
-    socket.join(`event_${eventType}`);
-    socket.emit('subscribed_to_event', { eventType });
-    console.log(`📡 Socket ${socket.id} subscribed to event: ${eventType}`);
-  }
-
-  private handleDisconnection(socket: Socket): void {
+  private onDisconnect(socket: Socket): void {
     const user = this.connectedUsers.get(socket.id);
-    
-    if (user?.userId) {
-      const userSocketSet = this.userSockets.get(user.userId);
-      if (userSocketSet) {
-        userSocketSet.delete(socket.id);
-        if (userSocketSet.size === 0) {
-          this.userSockets.delete(user.userId);
+    if (user && user.userId) {
+      this.userSockets.get(user.userId)?.delete(socket.id);
+      if (this.userSockets.get(user.userId)?.size === 0) {
+        this.userSockets.delete(user.userId);
+      }
+      if (user.organizationId) {
+        this.organizationSockets.get(user.organizationId)?.delete(socket.id);
+        if (this.organizationSockets.get(user.organizationId)?.size === 0) {
+          this.organizationSockets.delete(user.organizationId);
         }
       }
+      console.log(`🔌 User ${user.userId} disconnected: ${socket.id}`);
     }
 
     this.connectedUsers.delete(socket.id);
@@ -144,59 +134,40 @@ export class WebSocketService {
   }
 
   private setupRabbitMQConsumer(): void {
-    rabbitMQService.consumeMessages((message: RabbitMQMessage) => {
-      this.broadcastMessage(message);
+    rabbitMQService.consumeMessages(async (message: RabbitMQMessage) => {
+      // Solo procesar transmisiones de drivers
+      if (message.type === 'transmission.received' && message.data) {
+        const transmission: DriverTransmission = message.data;
+        await this.broadcastDriverTransmission(transmission);
+      }
     });
   }
 
-  private broadcastMessage(message: RabbitMQMessage): void {
+  private async broadcastDriverTransmission(transmission: DriverTransmission): Promise<void> {
     if (!this.io) return;
 
-    const { type, data } = message;
-
-    // Broadcast to specific event subscribers
-    this.io.to(`event_${type}`).emit('message', {
-      type,
-      data,
-      timestamp: message.timestamp
+    // Broadcast a todos los clientes conectados
+    this.io.emit('driver_transmission', {
+      type: 'driver_transmission',
+      data: transmission,
+      timestamp: new Date()
     });
 
-    // Route-specific broadcasts
-    if (data.routeId) {
-      this.io.to(`route_${data.routeId}`).emit('route_update', {
-        type,
-        data,
-        timestamp: message.timestamp
-      });
-    }
+    // Broadcast específico a la ruta del driver
+    this.io.to(`route_${transmission.routeId}`).emit('route_driver_update', {
+      type: 'driver_location_update',
+      data: transmission,
+      timestamp: new Date()
+    });
 
-    // Organization-specific broadcasts
-    if (data.organizationId) {
-      this.io.to(`org_${data.organizationId}`).emit('organization_update', {
-        type,
-        data,
-        timestamp: message.timestamp
-      });
-    }
+    // Broadcast específico al driver (si está conectado)
+    this.sendToUser(transmission.driverId, 'driver_status_update', {
+      type: 'status_confirmed',
+      data: transmission,
+      timestamp: new Date()
+    });
 
-    // User-specific broadcasts
-    if (data.userId) {
-      const userSockets = this.userSockets.get(data.userId);
-      if (userSockets) {
-        userSockets.forEach(socketId => {
-          const socket = this.io?.sockets.sockets.get(socketId);
-          if (socket) {
-            socket.emit('user_update', {
-              type,
-              data,
-              timestamp: message.timestamp
-            });
-          }
-        });
-      }
-    }
-
-    console.log(`📡 Message broadcasted: ${type}`);
+    console.log(`🚗 Driver transmission broadcasted: ${transmission.driverId} on route ${transmission.routeId}`);
   }
 
   // Public methods for sending messages
@@ -204,24 +175,17 @@ export class WebSocketService {
     const userSockets = this.userSockets.get(userId);
     if (userSockets) {
       userSockets.forEach(socketId => {
-        const socket = this.io?.sockets.sockets.get(socketId);
-        if (socket) {
-          socket.emit(event, data);
-        }
+        this.io?.to(socketId).emit(event, data);
       });
     }
-  }
-
-  public sendToOrganization(organizationId: string, event: string, data: any): void {
-    this.io?.to(`org_${organizationId}`).emit(event, data);
   }
 
   public sendToRoute(routeId: string, event: string, data: any): void {
     this.io?.to(`route_${routeId}`).emit(event, data);
   }
 
-  public broadcastToAll(event: string, data: any): void {
-    this.io?.emit(event, data);
+  public sendToOrganization(organizationId: string, event: string, data: any): void {
+    this.io?.to(`org_${organizationId}`).emit(event, data);
   }
 
   public getConnectedUsersCount(): number {
@@ -230,6 +194,10 @@ export class WebSocketService {
 
   public getConnectedUsers(): SocketUser[] {
     return Array.from(this.connectedUsers.values());
+  }
+
+  public isRabbitMQConnected(): boolean {
+    return rabbitMQService.isConnected();
   }
 }
 

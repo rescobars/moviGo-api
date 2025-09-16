@@ -1,18 +1,17 @@
 import { Router } from 'express';
 import { webSocketController } from '../controllers/websocket.controller';
 
-const router = Router();
+const router: Router = Router();
 
-// WebSocket status and management routes
+// WebSocket status
 router.get('/status', webSocketController.getStatus);
 
-// Test routes
-router.post('/test/send', webSocketController.sendTestMessage);
+// Test driver transmission
+router.post('/test/driver-transmission', webSocketController.sendTestDriverTransmission);
 
 // Message sending routes
 router.post('/send/user', webSocketController.sendToUser);
-router.post('/send/organization', webSocketController.sendToOrganization);
 router.post('/send/route', webSocketController.sendToRoute);
-router.post('/broadcast', webSocketController.broadcast);
+router.post('/send/organization', webSocketController.sendToOrganization);
 
 export default router;
