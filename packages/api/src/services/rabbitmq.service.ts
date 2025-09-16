@@ -30,31 +30,60 @@ export class RabbitMQService {
   constructor(options?: RabbitMQServiceOptions) {
     this.queueName = options?.queueName || 'movigo_events';
     this.exchangeName = options?.exchangeName || 'movigo_exchange';
-    this.routingPatterns = options?.routingPatterns || ['movigo.#']; // recibe todos los topics
+    this.routingPatterns = options?.routingPatterns || ['movigo.#'];
     this.prefetch = options?.prefetch || 50;
 
     // Conexión con reconexión automática
-    this.connection = amqpConnectionManager.connect([process.env.RABBITMQ_URL || 'amqp://localhost']);
+    const rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://localhost';
+    console.log('🔌 Connecting to RabbitMQ:', rabbitmqUrl);
+    
+    this.connection = amqpConnectionManager.connect([rabbitmqUrl], {
+      reconnectTimeInSeconds: 5,
+      heartbeatIntervalInSeconds: 5,
+    });
+    
     this.channelWrapper = this.connection.createChannel({
       json: true,
       setup: async (channel: amqp.Channel) => {
-        await channel.assertExchange(this.exchangeName, 'topic', { durable: true });
-        await channel.assertQueue(this.queueName, { durable: true });
+        try {
+          console.log('🔧 Setting up RabbitMQ channel...');
+          
+          // Crear exchange
+          await channel.assertExchange(this.exchangeName, 'topic', { durable: true });
+          console.log(`✅ Exchange '${this.exchangeName}' created/verified`);
 
-        // Prefetch para controlar la carga
-        channel.prefetch(this.prefetch);
+          // Crear cola
+          await channel.assertQueue(this.queueName, { durable: true });
+          console.log(`✅ Queue '${this.queueName}' created/verified`);
 
-        // Bindings a todos los patrones
-        for (const pattern of this.routingPatterns) {
-          await channel.bindQueue(this.queueName, this.exchangeName, pattern);
+          // Prefetch para controlar la carga
+          channel.prefetch(this.prefetch);
+
+          // Bindings a todos los patrones
+          for (const pattern of this.routingPatterns) {
+            await channel.bindQueue(this.queueName, this.exchangeName, pattern);
+            console.log(`✅ Queue bound to pattern '${pattern}'`);
+          }
+
+          console.log('🎉 RabbitMQ setup completed successfully');
+        } catch (error) {
+          console.error('❌ Error setting up RabbitMQ:', error);
+          throw error;
         }
       },
     });
 
-    this.connection.on('connect', () => console.log('✅ Connected to RabbitMQ'));
-    this.connection.on('disconnect', (params: any) =>
-      console.log('❌ Disconnected from RabbitMQ:', params.err?.stack)
-    );
+    this.connection.on('connect', () => {
+      console.log('✅ Connected to RabbitMQ');
+    });
+    
+    this.connection.on('disconnect', (params: any) => {
+      console.log('❌ Disconnected from RabbitMQ:', params.err?.message || 'Unknown error');
+    });
+
+    this.connection.on('connectFailed', (params: any) => {
+      console.log('❌ RabbitMQ connection failed:', params.err?.message || 'Unknown error');
+    });
   }
 
   /**
@@ -99,7 +128,7 @@ export class RabbitMQService {
       });
     });
 
-    console.log('👂 RabbitMQ consumer started');
+    console.log(' RabbitMQ consumer started');
   }
 
   /**
@@ -126,5 +155,5 @@ export class RabbitMQService {
 // Singleton instance
 export const rabbitMQService = new RabbitMQService({
   prefetch: 50,
-  routingPatterns: ['movigo.#'], // puedes agregar más patrones si agregas más topics
-});
+  routingPatterns: ['movigo.#'],
+}); 
