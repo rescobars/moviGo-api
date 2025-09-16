@@ -33,10 +33,14 @@ export const DriverMetadataSchema = z.object({
   networkType: z.nativeEnum(NetworkType).optional()
 });
 
+// Esquema para validar UUIDs
+const UUIDSchema = z.string().uuid('Must be a valid UUID');
+
 export const DriverTransmissionSchema = z.object({
-  driverId: z.string().min(1),
-  routeId: z.string().min(1),
-  vehicleId: z.string().optional(),
+  driverId: UUIDSchema, // UUID del driver
+  routeId: UUIDSchema, // UUID de la ruta
+  organizationId: UUIDSchema, // UUID de la organización
+  vehicleId: UUIDSchema.optional(), // UUID del vehículo
   location: LocationSchema,
   status: z.nativeEnum(DriverStatus),
   batteryLevel: z.number().min(0).max(100).optional(),
@@ -59,6 +63,11 @@ export interface DriverWebSocketEvents {
   };
   'route_driver_update': {
     type: 'driver_location_update';
+    data: DriverTransmission;
+    timestamp: Date;
+  };
+  'organization_driver_update': {
+    type: 'organization_driver_update';
     data: DriverTransmission;
     timestamp: Date;
   };

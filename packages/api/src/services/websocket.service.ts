@@ -160,6 +160,13 @@ export class WebSocketService {
       timestamp: new Date()
     });
 
+    // Broadcast específico a la organización del driver
+    this.io.to(`org_${transmission.organizationId}`).emit('organization_driver_update', {
+      type: 'organization_driver_update',
+      data: transmission,
+      timestamp: new Date()
+    });
+
     // Broadcast específico al driver (si está conectado)
     this.sendToUser(transmission.driverId, 'driver_status_update', {
       type: 'status_confirmed',
@@ -167,7 +174,7 @@ export class WebSocketService {
       timestamp: new Date()
     });
 
-    console.log(`🚗 Driver transmission broadcasted: ${transmission.driverId} on route ${transmission.routeId}`);
+    console.log(`🚗 Driver transmission broadcasted: ${transmission.driverId} on route ${transmission.routeId} in org ${transmission.organizationId}`);
   }
 
   // Public methods for sending messages

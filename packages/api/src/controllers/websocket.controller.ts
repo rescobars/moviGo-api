@@ -34,12 +34,12 @@ export class WebSocketController {
   // Send test driver transmission
   public sendTestDriverTransmission = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { driverId, routeId, latitude, longitude, status, networkType } = req.body;
+      const { driverId, routeId, organizationId, latitude, longitude, status, networkType } = req.body;
 
-      if (!driverId || !routeId || !latitude || !longitude) {
+      if (!driverId || !routeId || !organizationId || !latitude || !longitude) {
         res.status(400).json({
           success: false,
-          message: 'driverId, routeId, latitude, and longitude are required'
+          message: 'driverId, routeId, organizationId, latitude, and longitude are required'
         });
         return;
       }
@@ -48,6 +48,7 @@ export class WebSocketController {
       const transmissionData = {
         driverId,
         routeId,
+        organizationId,
         vehicleId: req.body.vehicleId,
         location: {
           latitude: parseFloat(latitude),
