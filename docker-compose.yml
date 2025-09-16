@@ -40,10 +40,34 @@ services:
       timeout: 10s
       retries: 3
 
+  # RabbitMQ for message queuing and event processing
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: movigo_rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: movigo_user
+      RABBITMQ_DEFAULT_PASS: movigo_password
+      RABBITMQ_DEFAULT_VHOST: movigo_vhost
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI port
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - movigo_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  rabbitmq_data:
     driver: local
 
 networks:
