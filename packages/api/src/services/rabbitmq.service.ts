@@ -7,33 +7,67 @@ export interface RabbitMQMessage {
   timestamp: Date;
 }
 
+// Opciones de configuración
+interface RabbitMQServiceOptions {
+  prefetch?: number; // mensajes por consumidor
+  queueName?: string;
+  exchangeName?: string;
+  routingPatterns?: string[]; // patrones para bindQueue
+}
+
+export const ENUMS_QUEUE_NAME = {
+  TRANSMISSION_RECEIVED: 'movigo.transmission.received',
+}
+
 export class RabbitMQService {
   private connection: amqpConnectionManager.AmqpConnectionManager;
   private channelWrapper: amqpConnectionManager.ChannelWrapper;
-  private readonly queueName = 'movigo_events';
-  private readonly exchangeName = 'movigo_exchange';
+  private readonly queueName: string;
+  private readonly exchangeName: string;
+  private readonly routingPatterns: string[];
+  private readonly prefetch: number;
 
-  constructor() {
+  constructor(options?: RabbitMQServiceOptions) {
+    this.queueName = options?.queueName || 'movigo_events';
+    this.exchangeName = options?.exchangeName || 'movigo_exchange';
+    this.routingPatterns = options?.routingPatterns || ['movigo.#']; // recibe todos los topics
+    this.prefetch = options?.prefetch || 50;
+
+    // Conexión con reconexión automática
     this.connection = amqpConnectionManager.connect([process.env.RABBITMQ_URL || 'amqp://localhost']);
     this.channelWrapper = this.connection.createChannel({
       json: true,
-      setup: (channel: amqp.Channel) => {
-        return Promise.all([
-          channel.assertExchange(this.exchangeName, 'topic', { durable: true }),
-          channel.assertQueue(this.queueName, { durable: true }),
-          channel.bindQueue(this.queueName, this.exchangeName, 'movigo.*'),
-        ]);
+      setup: async (channel: amqp.Channel) => {
+        await channel.assertExchange(this.exchangeName, 'topic', { durable: true });
+        await channel.assertQueue(this.queueName, { durable: true });
+
+        // Prefetch para controlar la carga
+        channel.prefetch(this.prefetch);
+
+        // Bindings a todos los patrones
+        for (const pattern of this.routingPatterns) {
+          await channel.bindQueue(this.queueName, this.exchangeName, pattern);
+        }
       },
     });
 
     this.connection.on('connect', () => console.log('✅ Connected to RabbitMQ'));
-    this.connection.on('disconnect', (params) => console.log('❌ Disconnected from RabbitMQ:', params.err.stack));
+    this.connection.on('disconnect', (params) =>
+      console.log('❌ Disconnected from RabbitMQ:', params.err.stack)
+    );
   }
 
+  /**
+   * Publicar mensaje
+   */
   async publishMessage(routingKey: string, message: RabbitMQMessage): Promise<boolean> {
     try {
-      const messageBuffer = Buffer.from(JSON.stringify({ ...message, timestamp: message.timestamp.toISOString() }));
-      await this.channelWrapper.publish(this.exchangeName, routingKey, messageBuffer, { persistent: true });
+      const messageBuffer = Buffer.from(
+        JSON.stringify({ ...message, timestamp: message.timestamp.toISOString() })
+      );
+      await this.channelWrapper.publish(this.exchangeName, routingKey, messageBuffer, {
+        persistent: true,
+      });
       console.log(`📤 Message published to ${routingKey}:`, message.type);
       return true;
     } catch (error) {
@@ -42,19 +76,25 @@ export class RabbitMQService {
     }
   }
 
-  async consumeMessages(callback: (message: RabbitMQMessage) => void): Promise<void> {
+  /**
+   * Consumir mensajes
+   * @param callback función que procesa cada mensaje
+   */
+  async consumeMessages(callback: (message: RabbitMQMessage) => Promise<void> | void): Promise<void> {
     this.channelWrapper.addSetup((channel: amqp.Channel) => {
-      return channel.consume(this.queueName, (msg) => {
-        if (msg) {
-          try {
-            const message: RabbitMQMessage = JSON.parse(msg.content.toString());
-            console.log(`📥 Message received:`, message.type);
-            callback(message);
-            channel.ack(msg);
-          } catch (error) {
-            console.error('❌ Error processing message:', error);
-            channel.nack(msg, false, false);
-          }
+      return channel.consume(this.queueName, async (msg) => {
+        if (!msg) return;
+
+        try {
+          const message: RabbitMQMessage = JSON.parse(msg.content.toString());
+          console.log(`📥 Message received:`, message.type);
+
+          // Procesamiento asíncrono seguro con ack después de terminar
+          await callback(message);
+          channel.ack(msg);
+        } catch (error) {
+          console.error('❌ Error processing message:', error);
+          channel.nack(msg, false, false); // descarta mensaje para no volver a encolar
         }
       });
     });
@@ -62,6 +102,9 @@ export class RabbitMQService {
     console.log('👂 RabbitMQ consumer started');
   }
 
+  /**
+   * Cerrar conexión
+   */
   async close(): Promise<void> {
     try {
       await this.channelWrapper.close();
@@ -72,10 +115,16 @@ export class RabbitMQService {
     }
   }
 
+  /**
+   * Verifica si la conexión está activa
+   */
   isConnected(): boolean {
     return this.connection.isConnected();
   }
 }
 
 // Singleton instance
-export const rabbitMQService = new RabbitMQService();
+export const rabbitMQService = new RabbitMQService({
+  prefetch: 50,
+  routingPatterns: ['movigo.#'], // puedes agregar más patrones si agregas más topics
+});
