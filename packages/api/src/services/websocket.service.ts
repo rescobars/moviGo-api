@@ -101,6 +101,7 @@ export class WebSocketService {
     socket.join(`route_${routeId}`);
     socket.emit('joined_route', { routeId });
     console.log(`🚪 User ${user.userId} joined route room: route_${routeId}`);
+    console.log(`📊 Current rooms for socket ${socket.id}:`, Array.from(socket.rooms));
   }
 
   private leaveRoute(socket: Socket, routeId: string): void {
@@ -152,26 +153,41 @@ export class WebSocketService {
   private async broadcastDriverTransmission(transmission: DriverTransmission): Promise<void> {
     if (!this.io) return;
 
+    console.log(`📡 Broadcasting transmission for driver ${transmission.driverId}`);
+    console.log(`📍 Route ID: ${transmission.routeId}`);
+    console.log(`🏢 Organization ID: ${transmission.organizationId}`);
+
     // Broadcast a todos los clientes conectados
     this.io.emit('driver_transmission', {
       type: 'driver_transmission',
       data: transmission,
       timestamp: new Date()
     });
+    console.log(`📢 Sent to all clients: driver_transmission`);
 
     // Broadcast específico a la ruta del driver
-    this.io.to(`route_${transmission.routeId}`).emit('route_driver_update', {
+    const routeRoom = `route_${transmission.routeId}`;
+    const routeClients = this.io.sockets.adapter.rooms.get(routeRoom);
+    console.log(`🚗 Route room '${routeRoom}' has ${routeClients?.size || 0} clients`);
+    
+    this.io.to(routeRoom).emit('route_driver_update', {
       type: 'driver_location_update',
       data: transmission,
       timestamp: new Date()
     });
+    console.log(`📢 Sent to route room: route_driver_update`);
 
     // Broadcast específico a la organización del driver
-    this.io.to(`org_${transmission.organizationId}`).emit('organization_driver_update', {
+    const orgRoom = `org_${transmission.organizationId}`;
+    const orgClients = this.io.sockets.adapter.rooms.get(orgRoom);
+    console.log(`🏢 Organization room '${orgRoom}' has ${orgClients?.size || 0} clients`);
+    
+    this.io.to(orgRoom).emit('organization_driver_update', {
       type: 'organization_driver_update',
       data: transmission,
       timestamp: new Date()
     });
+    console.log(`📢 Sent to organization room: organization_driver_update`);
 
     // Broadcast específico al driver (si está conectado)
     this.sendToUser(transmission.driverId, 'driver_status_update', {
@@ -179,6 +195,7 @@ export class WebSocketService {
       data: transmission,
       timestamp: new Date()
     });
+    console.log(`📢 Sent to driver: driver_status_update`);
 
     console.log(`🚗 Driver transmission broadcasted: ${transmission.driverId} on route ${transmission.routeId} in org ${transmission.organizationId}`);
   }
