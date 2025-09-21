@@ -1,35 +1,104 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Driver Simulator</title>
+    <title>Multi-Driver Simulator</title>
 </head>
 <body>
-    <h1>🚗 Driver Simulator</h1>
-    <button id="startBtn">Iniciar Simulación</button>
-    <button id="stopBtn">Detener Simulación</button>
-    <div id="status">Detenido</div>
+    <h1>🚗 Multi-Driver Simulator</h1>
+    <div class="controls">
+        <button id="startAllBtn">Iniciar Todos</button>
+        <button id="stopAllBtn">Detener Todos</button>
+        <button id="clearLogBtn">Limpiar Log</button>
+    </div>
+    
+    <div class="drivers-container">
+        <div class="driver-card" id="driver1">
+            <h3>🚗 Driver 1 - Juan Pérez</h3>
+            <div class="driver-status">Detenido</div>
+            <div class="driver-controls">
+                <button class="start-driver" data-driver="0">Iniciar</button>
+                <button class="stop-driver" data-driver="0">Detener</button>
+            </div>
+            <div class="driver-info">
+                <div>Progreso: <span class="progress">0/100</span></div>
+                <div>Velocidad: <span class="speed">0 km/h</span></div>
+            </div>
+        </div>
+        
+        <div class="driver-card" id="driver2">
+            <h3>🚗 Driver 2 - María García</h3>
+            <div class="driver-status">Detenido</div>
+            <div class="driver-controls">
+                <button class="start-driver" data-driver="1">Iniciar</button>
+                <button class="stop-driver" data-driver="1">Detener</button>
+            </div>
+            <div class="driver-info">
+                <div>Progreso: <span class="progress">0/100</span></div>
+                <div>Velocidad: <span class="speed">0 km/h</span></div>
+            </div>
+        </div>
+        
+        <div class="driver-card" id="driver3">
+            <h3>🚗 Driver 3 - Carlos López</h3>
+            <div class="driver-status">Detenido</div>
+            <div class="driver-controls">
+                <button class="start-driver" data-driver="2">Iniciar</button>
+                <button class="stop-driver" data-driver="2">Detener</button>
+            </div>
+            <div class="driver-info">
+                <div>Progreso: <span class="progress">0/100</span></div>
+                <div>Velocidad: <span class="speed">0 km/h</span></div>
+            </div>
+        </div>
+    </div>
+    
     <div id="log"></div>
 
     <script>
         // Configuración
         const API_URL = 'http://localhost:3000/api/websocket/test/driver-transmission';
-        const DRIVER_ID = '550e8400-e29b-41d4-a716-446655440000';
-        const ROUTE_ID = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
         const ORGANIZATION_ID = '6b65a4be-9c37-4af4-9deb-a2123c7c70e1';
 
-        // Puntos de la ruta
-        const START_POINT = { lat: 14.4672566, lng: -90.5082862 };
-        const END_POINT = { lat: 14.4794156, lng: -90.4883578 };
+        // Configuración de drivers
+        const DRIVERS = [
+            {
+                id: '550e8400-e29b-41d4-a716-446655440001',
+                name: 'Juan Pérez',
+                routeId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+                startPoint: { lat: 14.4672566, lng: -90.5082862 },
+                endPoint: { lat: 14.4794156, lng: -90.4883578 }
+            },
+            {
+                id: '550e8400-e29b-41d4-a716-446655440002',
+                name: 'María García',
+                routeId: '6ba7b810-9dad-11d1-80b4-00c04fd430c9',
+                startPoint: { lat: 14.4682566, lng: -90.5092862 },
+                endPoint: { lat: 14.4804156, lng: -90.4893578 }
+            },
+            {
+                id: '550e8400-e29b-41d4-a716-446655440003',
+                name: 'Carlos López',
+                routeId: '6ba7b810-9dad-11d1-80b4-00c04fd430ca',
+                startPoint: { lat: 14.4662566, lng: -90.5072862 },
+                endPoint: { lat: 14.4784156, lng: -90.4873578 }
+            }
+        ];
 
-        let currentPoint = 0;
-        let isRunning = false;
-        let intervalId = null;
+        // Estado de los drivers
+        let driversState = DRIVERS.map(driver => ({
+            ...driver,
+            currentPoint: 0,
+            isRunning: false,
+            intervalId: null,
+            lastPosition: null
+        }));
 
-        // Generar punto en la ruta
-        function getCurrentPosition() {
-            const progress = currentPoint / 100; // 100 puntos total
-            const lat = START_POINT.lat + (END_POINT.lat - START_POINT.lat) * progress;
-            const lng = START_POINT.lng + (END_POINT.lng - START_POINT.lng) * progress;
+        // Generar punto en la ruta para un driver específico
+        function getCurrentPosition(driverIndex) {
+            const driver = driversState[driverIndex];
+            const progress = driver.currentPoint / 100; // 100 puntos total
+            const lat = driver.startPoint.lat + (driver.endPoint.lat - driver.startPoint.lat) * progress;
+            const lng = driver.startPoint.lng + (driver.endPoint.lng - driver.startPoint.lng) * progress;
             
             return {
                 lat: lat + (Math.random() - 0.5) * 0.0001, // Pequeña variación
@@ -40,13 +109,14 @@
             };
         }
 
-        // Enviar transmisión
-        async function sendTransmission() {
-            const position = getCurrentPosition();
+        // Enviar transmisión para un driver específico
+        async function sendTransmission(driverIndex) {
+            const driver = driversState[driverIndex];
+            const position = getCurrentPosition(driverIndex);
             
             const data = {
-                driverId: DRIVER_ID,
-                routeId: ROUTE_ID,
+                driverId: driver.id,
+                routeId: driver.routeId,
                 organizationId: ORGANIZATION_ID,
                 latitude: position.lat,
                 longitude: position.lng,
@@ -73,44 +143,87 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    log(`✅ Transmisión enviada - Punto ${currentPoint}/100`);
+                    log(`✅ ${driver.name} - Transmisión enviada - Punto ${driver.currentPoint}/100`);
+                    updateDriverInfo(driverIndex, position);
                 } else {
-                    log(`❌ Error: ${result.message}`);
+                    log(`❌ ${driver.name} - Error: ${result.message}`);
                 }
             } catch (error) {
-                log(`❌ Error de conexión: ${error.message}`);
+                log(`❌ ${driver.name} - Error de conexión: ${error.message}`);
             }
 
-            currentPoint++;
-            if (currentPoint >= 100) {
-                currentPoint = 0; // Reiniciar ruta
+            driver.currentPoint++;
+            if (driver.currentPoint >= 100) {
+                driver.currentPoint = 0; // Reiniciar ruta
             }
         }
 
-        // Iniciar simulación
-        function startSimulation() {
-            if (isRunning) return;
+        // Actualizar información del driver en la UI
+        function updateDriverInfo(driverIndex, position) {
+            const driver = driversState[driverIndex];
+            const driverCard = document.getElementById(`driver${driverIndex + 1}`);
             
-            isRunning = true;
-            document.getElementById('status').textContent = '�� Simulando...';
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('stopBtn').disabled = false;
+            const progressSpan = driverCard.querySelector('.progress');
+            const speedSpan = driverCard.querySelector('.speed');
             
-            intervalId = setInterval(sendTransmission, 1000); // Cada 1 segundo
-            log('🚀 Simulación iniciada');
+            progressSpan.textContent = `${driver.currentPoint}/100`;
+            speedSpan.textContent = `${Math.round(position.speed)} km/h`;
         }
 
-        // Detener simulación
-        function stopSimulation() {
-            if (!isRunning) return;
+        // Iniciar simulación de un driver específico
+        function startDriverSimulation(driverIndex) {
+            const driver = driversState[driverIndex];
+            if (driver.isRunning) return;
             
-            isRunning = false;
-            clearInterval(intervalId);
-            document.getElementById('status').textContent = '⏹️ Detenido';
-            document.getElementById('startBtn').disabled = false;
-            document.getElementById('stopBtn').disabled = true;
+            driver.isRunning = true;
+            const driverCard = document.getElementById(`driver${driverIndex + 1}`);
+            const statusDiv = driverCard.querySelector('.driver-status');
+            const startBtn = driverCard.querySelector('.start-driver');
+            const stopBtn = driverCard.querySelector('.stop-driver');
             
-            log('⏹️ Simulación detenida');
+            statusDiv.textContent = '🚗 Conduciendo...';
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            
+            driver.intervalId = setInterval(() => sendTransmission(driverIndex), 1000 + Math.random() * 2000); // Entre 1-3 segundos
+            log(`🚀 ${driver.name} - Simulación iniciada`);
+        }
+
+        // Detener simulación de un driver específico
+        function stopDriverSimulation(driverIndex) {
+            const driver = driversState[driverIndex];
+            if (!driver.isRunning) return;
+            
+            driver.isRunning = false;
+            clearInterval(driver.intervalId);
+            driver.intervalId = null;
+            
+            const driverCard = document.getElementById(`driver${driverIndex + 1}`);
+            const statusDiv = driverCard.querySelector('.driver-status');
+            const startBtn = driverCard.querySelector('.start-driver');
+            const stopBtn = driverCard.querySelector('.stop-driver');
+            
+            statusDiv.textContent = '⏹️ Detenido';
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            
+            log(`⏹️ ${driver.name} - Simulación detenida`);
+        }
+
+        // Iniciar todos los drivers
+        function startAllSimulations() {
+            driversState.forEach((_, index) => {
+                startDriverSimulation(index);
+            });
+            log('🚀 Todos los drivers iniciados');
+        }
+
+        // Detener todos los drivers
+        function stopAllSimulations() {
+            driversState.forEach((_, index) => {
+                stopDriverSimulation(index);
+            });
+            log('⏹️ Todos los drivers detenidos');
         }
 
         // Mostrar log
@@ -122,21 +235,146 @@
         }
 
         // Event listeners
-        document.getElementById('startBtn').addEventListener('click', startSimulation);
-        document.getElementById('stopBtn').addEventListener('click', stopSimulation);
+        document.getElementById('startAllBtn').addEventListener('click', startAllSimulations);
+        document.getElementById('stopAllBtn').addEventListener('click', stopAllSimulations);
+        document.getElementById('clearLogBtn').addEventListener('click', () => {
+            document.getElementById('log').innerHTML = '';
+        });
+        
+        // Event listeners para cada driver
+        document.querySelectorAll('.start-driver').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const driverIndex = parseInt(e.target.dataset.driver);
+                startDriverSimulation(driverIndex);
+            });
+        });
+        
+        document.querySelectorAll('.stop-driver').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const driverIndex = parseInt(e.target.dataset.driver);
+                stopDriverSimulation(driverIndex);
+            });
+        });
     </script>
 
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        button { padding: 10px 20px; margin: 5px; font-size: 16px; }
-        #status { font-size: 18px; margin: 10px 0; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .controls button {
+            padding: 12px 24px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        #startAllBtn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        #stopAllBtn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        #clearLogBtn {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .drivers-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .driver-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .driver-card h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+        }
+        
+        .driver-status {
+            font-size: 18px;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+        
+        .driver-controls {
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .driver-controls button {
+            padding: 8px 16px;
+            margin: 5px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .start-driver {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .stop-driver {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .driver-info {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .driver-info div {
+            margin: 5px 0;
+        }
+        
+        .progress, .speed {
+            font-weight: bold;
+            color: #2196F3;
+        }
+        
         #log { 
             background: #f0f0f0; 
-            padding: 10px; 
+            padding: 15px; 
             height: 300px; 
             overflow-y: auto; 
             border: 1px solid #ccc;
+            border-radius: 4px;
             margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        #log div {
+            margin: 2px 0;
+            padding: 2px 0;
         }
     </style>
 </body>

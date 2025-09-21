@@ -113,7 +113,7 @@ export class RabbitMQService {
         if (!msg) return;
 
         try {
-          console.log('📥 Raw message content:', msg.content.toString());
+
           const message: RabbitMQMessage = JSON.parse(msg.content.toString());
           console.log('📥 Parsed message:', message);
           // Procesamiento asíncrono seguro con ack después de terminar
