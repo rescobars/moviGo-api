@@ -36,10 +36,10 @@ export class WebSocketController {
     try {
       const { driverId, routeId, organizationId, latitude, longitude, status, networkType } = req.body;
 
-      if (!driverId || !routeId || !organizationId || !latitude || !longitude) {
+      if (!driverId || !organizationId || !latitude || !longitude) {
         res.status(400).json({
           success: false,
-          message: 'driverId, routeId, organizationId, latitude, and longitude are required'
+          message: 'driverId, organizationId, latitude, and longitude are required'
         });
         return;
       }
@@ -47,7 +47,7 @@ export class WebSocketController {
       // Validar y convertir los datos usando Zod
       const transmissionData = {
         driverId,
-        routeId,
+        routeId: routeId || undefined, // Opcional
         organizationId,
         vehicleId: req.body.vehicleId,
         location: {

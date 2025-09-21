@@ -129,7 +129,7 @@ export const UpdateDriverTransmissionSchema = z.object({
 // Schema para validar transmisiones desde RabbitMQ
 export const RabbitMQDriverTransmissionSchema = z.object({
   driverId: z.string().uuid(),
-  routeId: z.string().uuid(),
+  routeId: z.string().uuid().optional(), // Opcional
   organizationId: z.string().uuid(),
   vehicleId: z.string().optional(),
   location: LocationSchema,

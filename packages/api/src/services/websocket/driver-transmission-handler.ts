@@ -41,11 +41,13 @@ export class DriverTransmissionHandler {
       data: transmission,
     });
 
-    // Broadcast específico a la ruta del driver
-    this.messageBroadcaster.broadcastToRoute(transmission.routeId, WEBSOCKET_EVENTS.ROUTE_DRIVER_UPDATE, {
-      type: MESSAGE_TYPES.DRIVER_LOCATION_UPDATE,
-      data: transmission,
-    });
+    // Broadcast específico a la ruta del driver (solo si tiene ruta)
+    if (transmission.routeId) {
+      this.messageBroadcaster.broadcastToRoute(transmission.routeId, WEBSOCKET_EVENTS.ROUTE_DRIVER_UPDATE, {
+        type: MESSAGE_TYPES.DRIVER_LOCATION_UPDATE,
+        data: transmission,
+      });
+    }
 
     // Broadcast específico a la organización del driver
     this.messageBroadcaster.broadcastToOrganization(transmission.organizationId, WEBSOCKET_EVENTS.ORGANIZATION_DRIVER_UPDATE, {
@@ -99,8 +101,8 @@ export class DriverTransmissionHandler {
         driverId: transmission.driverId,
         driverName: savedTransmission.driver_name || 'Driver',
         driverUuid: transmission.driverId,
-        routeId: transmission.routeId,
-        routeName: savedTransmission.route_name,
+        routeId: transmission.routeId || undefined,
+        routeName: savedTransmission.route_name || undefined,
         organizationId: transmission.organizationId,
         organizationName: savedTransmission.organization_name,
         vehicleId: transmission.vehicleId,

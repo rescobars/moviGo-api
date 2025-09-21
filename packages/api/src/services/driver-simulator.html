@@ -9,6 +9,7 @@
         <button id="startAllBtn">Iniciar Todos</button>
         <button id="stopAllBtn">Detener Todos</button>
         <button id="clearLogBtn">Limpiar Log</button>
+        <button id="testYesterdayBtn">Simular Transmisión de Ayer</button>
     </div>
     
     <div class="drivers-container">
@@ -18,6 +19,7 @@
             <div class="driver-controls">
                 <button class="start-driver" data-driver="0">Iniciar</button>
                 <button class="stop-driver" data-driver="0">Detener</button>
+                <button class="reset-driver" data-driver="0">Reiniciar</button>
             </div>
             <div class="driver-info">
                 <div>Progreso: <span class="progress">0/100</span></div>
@@ -31,6 +33,7 @@
             <div class="driver-controls">
                 <button class="start-driver" data-driver="1">Iniciar</button>
                 <button class="stop-driver" data-driver="1">Detener</button>
+                <button class="reset-driver" data-driver="1">Reiniciar</button>
             </div>
             <div class="driver-info">
                 <div>Progreso: <span class="progress">0/100</span></div>
@@ -44,6 +47,7 @@
             <div class="driver-controls">
                 <button class="start-driver" data-driver="2">Iniciar</button>
                 <button class="stop-driver" data-driver="2">Detener</button>
+                <button class="reset-driver" data-driver="2">Reiniciar</button>
             </div>
             <div class="driver-info">
                 <div>Progreso: <span class="progress">0/100</span></div>
@@ -114,15 +118,27 @@
             const driver = driversState[driverIndex];
             const position = getCurrentPosition(driverIndex);
             
+            // Determinar el status basado en el driver y su progreso
+            let status = 'DRIVING';
+            if (driver.currentPoint >= 100) {
+                if (driverIndex === 0) {
+                    status = 'STOPPED'; // Primer driver se detiene
+                } else if (driverIndex === 1) {
+                    status = 'BREAK'; // Segundo driver en break
+                } else {
+                    status = 'DRIVING'; // Otros drivers continúan
+                }
+            }
+            
             const data = {
                 driverId: driver.id,
                 routeId: driver.routeId,
                 organizationId: ORGANIZATION_ID,
                 latitude: position.lat,
                 longitude: position.lng,
-                status: 'DRIVING',
+                status: status,
                 accuracy: position.accuracy,
-                speed: position.speed,
+                speed: status === 'DRIVING' ? position.speed : 0, // Velocidad 0 si no está conduciendo
                 heading: position.heading,
                 batteryLevel: 80 + Math.random() * 20,
                 signalStrength: 70 + Math.random() * 30,
@@ -143,8 +159,8 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    log(`✅ ${driver.name} - Transmisión enviada - Punto ${driver.currentPoint}/100`);
-                    updateDriverInfo(driverIndex, position);
+                    log(`✅ ${driver.name} - Transmisión enviada - Punto ${driver.currentPoint}/100 - Status: ${status}`);
+                    updateDriverInfo(driverIndex, position, status);
                 } else {
                     log(`❌ ${driver.name} - Error: ${result.message}`);
                 }
@@ -154,20 +170,43 @@
 
             driver.currentPoint++;
             if (driver.currentPoint >= 100) {
-                driver.currentPoint = 0; // Reiniciar ruta
+                // No reiniciar automáticamente, mantener el status final
+                if (driverIndex === 0) {
+                    log(`🛑 ${driver.name} - Ruta completada - Status: STOPPED`);
+                } else if (driverIndex === 1) {
+                    log(`☕ ${driver.name} - Ruta completada - Status: BREAK`);
+                } else {
+                    driver.currentPoint = 0; // Otros drivers reinician
+                }
             }
         }
 
         // Actualizar información del driver en la UI
-        function updateDriverInfo(driverIndex, position) {
+        function updateDriverInfo(driverIndex, position, status = 'DRIVING') {
             const driver = driversState[driverIndex];
             const driverCard = document.getElementById(`driver${driverIndex + 1}`);
             
             const progressSpan = driverCard.querySelector('.progress');
             const speedSpan = driverCard.querySelector('.speed');
+            const statusDiv = driverCard.querySelector('.driver-status');
             
             progressSpan.textContent = `${driver.currentPoint}/100`;
             speedSpan.textContent = `${Math.round(position.speed)} km/h`;
+            
+            // Actualizar el status visual
+            if (status === 'STOPPED') {
+                statusDiv.textContent = '🛑 Detenido';
+                statusDiv.style.backgroundColor = '#ffebee';
+                statusDiv.style.color = '#c62828';
+            } else if (status === 'BREAK') {
+                statusDiv.textContent = '☕ En Break';
+                statusDiv.style.backgroundColor = '#fff3e0';
+                statusDiv.style.color = '#ef6c00';
+            } else {
+                statusDiv.textContent = '🚗 Conduciendo...';
+                statusDiv.style.backgroundColor = '#e8f5e8';
+                statusDiv.style.color = '#2e7d32';
+            }
         }
 
         // Iniciar simulación de un driver específico
@@ -204,10 +243,31 @@
             const stopBtn = driverCard.querySelector('.stop-driver');
             
             statusDiv.textContent = '⏹️ Detenido';
+            statusDiv.style.backgroundColor = '#f0f0f0';
+            statusDiv.style.color = '#666';
             startBtn.disabled = false;
             stopBtn.disabled = true;
             
             log(`⏹️ ${driver.name} - Simulación detenida`);
+        }
+
+        // Reiniciar un driver específico
+        function resetDriver(driverIndex) {
+            const driver = driversState[driverIndex];
+            driver.currentPoint = 0;
+            
+            const driverCard = document.getElementById(`driver${driverIndex + 1}`);
+            const progressSpan = driverCard.querySelector('.progress');
+            const speedSpan = driverCard.querySelector('.speed');
+            const statusDiv = driverCard.querySelector('.driver-status');
+            
+            progressSpan.textContent = '0/100';
+            speedSpan.textContent = '0 km/h';
+            statusDiv.textContent = 'Detenido';
+            statusDiv.style.backgroundColor = '#f0f0f0';
+            statusDiv.style.color = '#666';
+            
+            log(`🔄 ${driver.name} - Reiniciado`);
         }
 
         // Iniciar todos los drivers
@@ -226,6 +286,52 @@
             log('⏹️ Todos los drivers detenidos');
         }
 
+        // Simular transmisión de ayer para driver específico
+        async function simulateYesterdayTransmission() {
+            const driverId = 'd7c3a9ae-133d-4732-8050-04145894fcb9';
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            // Generar ubicación aleatoria en Guatemala
+            const data = {
+                driverId: driverId,
+                organizationId: ORGANIZATION_ID,
+                // Sin routeId (sin ruta)
+                latitude: 14.473318 + (Math.random() - 0.5) * 0.01, // Centro de Guatemala con variación
+                longitude: -90.498293 + (Math.random() - 0.5) * 0.01,
+                status: 'DRIVING',
+                accuracy: 5 + Math.random() * 10,
+                speed: 25 + Math.random() * 20,
+                heading: Math.random() * 360,
+                batteryLevel: 80 + Math.random() * 20,
+                signalStrength: 70 + Math.random() * 30,
+                appVersion: '1.0.0',
+                deviceInfo: 'Android 13',
+                networkType: '4G',
+                timestamp: yesterday.toISOString() // Timestamp de ayer
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    log(`✅ Transmisión de ayer enviada - Driver: ${driverId} - Sin ruta - Timestamp: ${yesterday.toLocaleString()}`);
+                } else {
+                    log(`❌ Error enviando transmisión de ayer: ${result.message}`);
+                }
+            } catch (error) {
+                log(`❌ Error de conexión enviando transmisión de ayer: ${error.message}`);
+            }
+        }
+
         // Mostrar log
         function log(message) {
             const logDiv = document.getElementById('log');
@@ -240,6 +346,7 @@
         document.getElementById('clearLogBtn').addEventListener('click', () => {
             document.getElementById('log').innerHTML = '';
         });
+        document.getElementById('testYesterdayBtn').addEventListener('click', simulateYesterdayTransmission);
         
         // Event listeners para cada driver
         document.querySelectorAll('.start-driver').forEach(btn => {
@@ -253,6 +360,13 @@
             btn.addEventListener('click', (e) => {
                 const driverIndex = parseInt(e.target.dataset.driver);
                 stopDriverSimulation(driverIndex);
+            });
+        });
+        
+        document.querySelectorAll('.reset-driver').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const driverIndex = parseInt(e.target.dataset.driver);
+                resetDriver(driverIndex);
             });
         });
     </script>
@@ -290,6 +404,11 @@
         
         #clearLogBtn {
             background-color: #2196F3;
+            color: white;
+        }
+        
+        #testYesterdayBtn {
+            background-color: #9C27B0;
             color: white;
         }
         
@@ -343,6 +462,11 @@
         
         .stop-driver {
             background-color: #f44336;
+            color: white;
+        }
+        
+        .reset-driver {
+            background-color: #FF9800;
             color: white;
         }
         

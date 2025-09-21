@@ -40,7 +40,7 @@ const UUIDSchema = z.string().uuid('Must be a valid UUID');
 // Esquema para transmisiones de WebSocket (formato original)
 export const DriverTransmissionSchema = z.object({
   driverId: UUIDSchema, // UUID del driver
-  routeId: UUIDSchema, // UUID de la ruta
+  routeId: UUIDSchema.optional(), // UUID de la ruta (opcional)
   organizationId: UUIDSchema, // UUID de la organización
   vehicleId: UUIDSchema.optional(), // UUID del vehículo
   location: LocationSchema,
