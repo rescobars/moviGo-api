@@ -103,6 +103,37 @@ export class DriverLastPositionController {
     }
   };
 
+  /**
+   * Obtiene las últimas posiciones de drivers de múltiples rutas
+   */
+  public getMultipleRoutesDriverLastPositions = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { routeIds } = req.body;
+
+      if (!routeIds || !Array.isArray(routeIds) || routeIds.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'routeIds array is required'
+        });
+        return;
+      }
+
+      const lastPositions = await redisService.getMultipleRoutesDriverLastPositions(routeIds);
+
+      res.json({
+        success: true,
+        data: lastPositions
+      });
+    } catch (error) {
+      console.error('Error getting multiple routes driver last positions:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error getting multiple routes driver last positions',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  };
+
 
   /**
    * Verifica el estado de Redis

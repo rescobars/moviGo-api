@@ -127,6 +127,30 @@ export class RedisService {
     }
   }
 
+  /**
+   * Obtiene las últimas posiciones de drivers de múltiples rutas
+   */
+  async getMultipleRoutesDriverLastPositions(routeIds: string[]): Promise<DriverLastPosition[]> {
+    try {
+      const pattern = `${this.DRIVER_POSITION_PREFIX}*`;
+      const keys = await this.redis.keys(pattern);
+      
+      if (keys.length === 0) {
+        return [];
+      }
+
+      const data = await this.redis.mget(...keys);
+      
+      return data
+        .filter(item => item !== null)
+        .map(item => JSON.parse(item!) as DriverLastPosition)
+        .filter(position => routeIds.includes(position.routeId || ''));
+    } catch (error) {
+      console.error('Error getting multiple routes driver positions from Redis:', error);
+      return [];
+    }
+  }
+
 
   /**
    * Obtiene información de un driver

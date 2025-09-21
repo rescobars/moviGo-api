@@ -12,6 +12,8 @@ router.post('/drivers/last-positions', driverLastPositionController.getMultipleD
 // Obtener últimas posiciones de todos los drivers de una organización
 router.get('/organizations/:organizationId/drivers/last-positions', driverLastPositionController.getOrganizationDriverLastPositions);
 
+// Obtener últimas posiciones de drivers de múltiples rutas
+router.post('/routes/drivers/last-positions', driverLastPositionController.getMultipleRoutesDriverLastPositions);
 
 // Verificar estado de Redis
 router.get('/redis/status', driverLastPositionController.getRedisStatus);
