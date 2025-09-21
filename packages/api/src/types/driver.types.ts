@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
-// Enums en mayúsculas
+// Enums en mayúsculas (mantener compatibilidad)
 export enum DriverStatus {
   DRIVING = 'DRIVING',
   STOPPED = 'STOPPED',
   OFFLINE = 'OFFLINE',
   BREAK = 'BREAK',
-  DELIVERY = 'DELIVERY'
+  MAINTENANCE = 'MAINTENANCE'
 }
 
 export enum NetworkType {
@@ -14,10 +14,11 @@ export enum NetworkType {
   FOUR_G = '4G',
   FIVE_G = '5G',
   THREE_G = '3G',
+  TWO_G = '2G',
   UNKNOWN = 'UNKNOWN'
 }
 
-// Esquemas Zod para validación
+// Esquemas Zod para validación (mantener compatibilidad con WebSocket)
 export const LocationSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
@@ -36,6 +37,7 @@ export const DriverMetadataSchema = z.object({
 // Esquema para validar UUIDs
 const UUIDSchema = z.string().uuid('Must be a valid UUID');
 
+// Esquema para transmisiones de WebSocket (formato original)
 export const DriverTransmissionSchema = z.object({
   driverId: UUIDSchema, // UUID del driver
   routeId: UUIDSchema, // UUID de la ruta

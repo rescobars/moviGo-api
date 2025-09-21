@@ -7,7 +7,4 @@ export * from './auth-token';
 export * from './user-session';
 export * from './order';
 export * from './route';
-
-
-// Order schemas
-export * from './order';
+export * from './driver-transmission';

@@ -12,4 +12,7 @@ export * from './route.repository';
 export * from './route-order.repository';
 export * from './route-driver.repository';
 
+// Driver transmission repository
+export * from './driver-transmission.repository';
+
 
