@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import { createServer } from 'http';
 import { db } from '../packages/database/src/db-config';
-import { userRoutes, authRoutes, migrationRoutes, seedRoutes, organizationMemberRoutes, organizationRoutes, orderRoutes, routeRoutes, routeDriverRoutes, webSocketRoutes } from '../packages/api/src/routes';
+import { userRoutes, authRoutes, migrationRoutes, seedRoutes, organizationMemberRoutes, organizationRoutes, orderRoutes, routeRoutes, routeDriverRoutes, webSocketRoutes, driverLastPositionRoutes } from '../packages/api/src/routes';
 import { UserRepository } from '../packages/database/src/repositories/user-repository';
 import { AuthTokenRepository } from '../packages/database/src/repositories/auth-token.repository';
 import { specs } from '../packages/api/src/config/swagger';
@@ -53,6 +53,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/routes', routeRoutes);
 app.use('/api/route-drivers', routeDriverRoutes);
 app.use('/api/websocket', webSocketRoutes);
+app.use('/api/driver-positions', driverLastPositionRoutes);
 
 
 // Basic API routes

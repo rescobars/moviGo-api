@@ -8,4 +8,5 @@ export { default as orderRoutes } from './orders';
 export { default as routeRoutes } from './routes';
 export { default as routeDriverRoutes } from './route-driver';
 export { default as webSocketRoutes } from './websocket';
+export { default as driverLastPositionRoutes } from './driver-last-position';
 
