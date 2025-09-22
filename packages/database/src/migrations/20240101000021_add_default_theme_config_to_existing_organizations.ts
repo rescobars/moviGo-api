@@ -1,47 +1,47 @@
 import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
-  // Default theme configuration
+  // Default theme configuration - Gallo Theme
   const defaultThemeConfig = {
-    theme_name: "Movigo - Moderno",
+    theme_name: "Gallo - Tradicional",
     theme_version: "1.0.0",
     colors: {
-      background1: "#000000",
-      background2: "#111111",
-      background3: "#1a1a1a",
-      buttonPrimary1: "#ffffff",
-      buttonPrimary2: "#f3f4f6",
-      buttonPrimary3: "#e5e7eb",
-      buttonSecondary1: "#1a1a1a",
-      buttonSecondary2: "#2a2a2a",
-      buttonHover: "#f3f4f6",
-      buttonActive: "#e5e7eb",
-      buttonText: "#000000",
-      buttonTextHover: "#000000",
-      tableHeader: "#1a1a1a",
-      tableRow: "#000000",
-      tableRowHover: "#111111",
-      tableBorder: "#333333",
-      menuBackground1: "#000000",
-      menuBackground2: "#111111",
-      menuItemHover: "#1a1a1a",
-      headerBackground: "#000000",
+      background1: "#fefefe",
+      background2: "#f8fafc",
+      background3: "#f1f5f9",
+      buttonPrimary1: "#dc2626",
+      buttonPrimary2: "#ef4444",
+      buttonPrimary3: "#f87171",
+      buttonSecondary1: "#f8fafc",
+      buttonSecondary2: "#e5e7eb",
+      buttonHover: "#dc2626",
+      buttonActive: "#b91c1c",
+      buttonText: "#ffffff",
+      buttonTextHover: "#ffffff",
+      tableHeader: "#f8fafc",
+      tableRow: "#ffffff",
+      tableRowHover: "#f8fafc",
+      tableBorder: "#e5e7eb",
+      menuBackground1: "#ffffff",
+      menuBackground2: "#f8fafc",
+      menuItemHover: "#fef2f2",
+      headerBackground: "#dc2626",
       headerText: "#ffffff",
-      headerBorder: "#333333",
-      sidebarBackground: "#111111",
-      sidebarText: "#ffffff",
-      sidebarBorder: "#333333",
-      sidebarItemHover: "#1a1a1a",
-      sidebarItemActive: "#ffffff",
-      textPrimary: "#ffffff",
-      textSecondary: "#d1d5db",
-      textMuted: "#9ca3af",
-      border: "#333333",
-      divider: "#1a1a1a",
-      success: "#10b981",
-      warning: "#f59e0b",
-      error: "#ef4444",
-      info: "#3b82f6"
+      headerBorder: "#e5e7eb",
+      sidebarBackground: "#ffffff",
+      sidebarText: "#1f2937",
+      sidebarBorder: "#e5e7eb",
+      sidebarItemHover: "#fef2f2",
+      sidebarItemActive: "#dc2626",
+      textPrimary: "#1f2937",
+      textSecondary: "#4b5563",
+      textMuted: "#6b7280",
+      border: "#e5e7eb",
+      divider: "#f3f4f6",
+      success: "#059669",
+      warning: "#d97706",
+      error: "#dc2626",
+      info: "#2563eb"
     },
     metadata: {
       created_at: new Date().toISOString(),
@@ -51,16 +51,16 @@ export async function up(knex: Knex): Promise<void> {
       is_active: true
     },
     branding: {
-      logo_url: "https://example.com/logo.png",
-      favicon_url: "https://example.com/favicon.ico",
+      logo_url: "https://gallocerveza.com/logo.png",
+      favicon_url: "https://gallocerveza.com/favicon.ico",
       primary_font: "Inter",
       secondary_font: "Roboto"
     }
   };
 
   const defaultBranding = {
-    logo_url: "https://example.com/logo.png",
-    favicon_url: "https://example.com/favicon.ico",
+    logo_url: "https://gallocerveza.com/logo.png",
+    favicon_url: "https://gallocerveza.com/favicon.ico",
     primary_font: "Inter",
     secondary_font: "Roboto"
   };
