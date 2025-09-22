@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ThemeConfigSchema, BrandingSchema } from './theme-config';
 
 // Organization status enum
 export const OrganizationStatusEnum = z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']);
@@ -23,6 +24,8 @@ export const OrganizationSchema = z.object({
   is_active: z.boolean(),
   plan_type: PlanTypeEnum,
   subscription_expires_at: z.date().optional(),
+  theme_config: ThemeConfigSchema.optional(),
+  branding: BrandingSchema.optional(),
   created_at: z.date(),
   updated_at: z.date()
 });
@@ -40,7 +43,9 @@ export const CreateOrganizationSchema = z.object({
   address: z.string().optional(),
   status: OrganizationStatusEnum.optional().default('ACTIVE'),
   plan_type: PlanTypeEnum.optional().default('FREE'),
-  subscription_expires_at: z.string().datetime().optional()
+  subscription_expires_at: z.string().datetime().optional(),
+  theme_config: ThemeConfigSchema.optional(),
+  branding: BrandingSchema.optional()
 });
 
 // Schema for updating an organization
@@ -57,7 +62,9 @@ export const UpdateOrganizationSchema = z.object({
   status: OrganizationStatusEnum.optional(),
   is_active: z.boolean().optional(),
   plan_type: PlanTypeEnum.optional(),
-  subscription_expires_at: z.string().datetime().optional()
+  subscription_expires_at: z.string().datetime().optional(),
+  theme_config: ThemeConfigSchema.optional(),
+  branding: BrandingSchema.optional()
 });
 
 // Type exports

@@ -1,4 +1,5 @@
 import { Organization, CreateOrganization, UpdateOrganization } from '../../../types/src/schemas/organization';
+import { DEFAULT_THEME_CONFIG } from '../../../types/src/schemas/theme-config';
 import { db } from '../db-config';
 
 export class OrganizationRepository {
@@ -52,8 +53,15 @@ export class OrganizationRepository {
   }
 
   static async create(organizationData: CreateOrganization): Promise<Organization> {
+    // Add default theme config if not provided
+    const dataWithDefaults = {
+      ...organizationData,
+      theme_config: organizationData.theme_config || DEFAULT_THEME_CONFIG,
+      branding: organizationData.branding || DEFAULT_THEME_CONFIG.branding
+    };
+
     const [organization] = await db('organizations')
-      .insert(organizationData)
+      .insert(dataWithDefaults)
       .returning('*');
     
     return organization;

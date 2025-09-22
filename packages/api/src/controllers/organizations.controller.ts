@@ -239,6 +239,8 @@ export class OrganizationsController {
         status: organization.status,
         plan_type: organization.plan_type,
         logo_url: organization.logo_url,
+        theme_config: organization.theme_config,
+        branding: organization.branding,
         created_at: organization.created_at,
         updated_at: organization.updated_at
       };

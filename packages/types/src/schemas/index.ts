@@ -8,3 +8,4 @@ export * from './user-session';
 export * from './order';
 export * from './route';
 export * from './driver-transmission';
+export * from './theme-config';
