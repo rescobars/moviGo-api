@@ -61,7 +61,7 @@ export class WebSocketController {
         status: status ? status.toUpperCase() : DriverStatus.DRIVING,
         batteryLevel: req.body.batteryLevel,
         signalStrength: req.body.signalStrength,
-        timestamp: new Date(),
+        timestamp: req.body.timestamp ? new Date(req.body.timestamp) : new Date(),
         metadata: {
           appVersion: req.body.appVersion || '1.0.0',
           deviceInfo: req.body.deviceInfo,

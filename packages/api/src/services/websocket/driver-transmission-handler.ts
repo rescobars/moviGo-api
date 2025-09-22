@@ -81,7 +81,10 @@ export class DriverTransmissionHandler {
         battery_level: validatedTransmission.batteryLevel,
         signal_strength: validatedTransmission.signalStrength,
         network_type: validatedTransmission.metadata?.networkType,
-        metadata: validatedTransmission.metadata
+        metadata: validatedTransmission.metadata,
+        transmission_timestamp: validatedTransmission.timestamp instanceof Date 
+          ? validatedTransmission.timestamp 
+          : new Date(validatedTransmission.timestamp)
       };
 
       // Guardar en la base de datos y obtener información completa
@@ -97,6 +100,10 @@ export class DriverTransmissionHandler {
    */
   private async saveTransmissionToRedis(transmission: DriverTransmission, savedTransmission: any): Promise<void> {
     try {
+      const transmissionTimestamp = transmission.timestamp instanceof Date 
+        ? transmission.timestamp.toISOString() 
+        : new Date(transmission.timestamp).toISOString();
+
       const lastPosition: DriverLastPosition = {
         driverId: transmission.driverId,
         driverName: savedTransmission.driver_name || 'Driver',
@@ -111,9 +118,8 @@ export class DriverTransmissionHandler {
         batteryLevel: transmission.batteryLevel,
         signalStrength: transmission.signalStrength,
         networkType: transmission.metadata?.networkType,
-        timestamp: transmission.timestamp instanceof Date 
-          ? transmission.timestamp.toISOString() 
-          : new Date(transmission.timestamp).toISOString(),
+        timestamp: transmissionTimestamp, // Timestamp from producer
+        transmissionTimestamp: transmissionTimestamp, // Alias for backward compatibility
         metadata: transmission.metadata
       };
 

@@ -21,7 +21,8 @@ export interface DriverLastPosition {
   batteryLevel?: number;
   signalStrength?: number;
   networkType?: string;
-  timestamp: string;
+  timestamp: string; // Timestamp from producer
+  transmissionTimestamp?: string; // Alias for timestamp (for backward compatibility)
   metadata?: {
     appVersion?: string;
     deviceInfo?: string;

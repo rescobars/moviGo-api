@@ -43,25 +43,26 @@ export class DriverTransmissionRepository {
       }
     }
 
-    const transmissionData: DriverTransmissionDataForInsert = {
-      driver_id: driver.id,
-      route_id: routeId, // Puede ser null
-      organization_id: organization.id,
-      vehicle_id: createData.vehicle_id,
-      latitude: createData.location.latitude,
-      longitude: createData.location.longitude,
-      accuracy: createData.location.accuracy,
-      altitude: createData.location.altitude,
-      speed: createData.location.speed,
-      heading: createData.location.heading ?? undefined,
-      status: createData.status,
-      battery_level: createData.battery_level ?? undefined,
-      signal_strength: createData.signal_strength ?? undefined,
-      network_type: createData.network_type,
-      app_version: createData.metadata?.appVersion,
-      device_info: createData.metadata?.deviceInfo,
-      device_metadata: createData.metadata
-    };
+        const transmissionData: DriverTransmissionDataForInsert = {
+          driver_id: driver.id,
+          route_id: routeId, // Puede ser null
+          organization_id: organization.id,
+          vehicle_id: createData.vehicle_id,
+          latitude: createData.location.latitude,
+          longitude: createData.location.longitude,
+          accuracy: createData.location.accuracy,
+          altitude: createData.location.altitude,
+          speed: createData.location.speed,
+          heading: createData.location.heading ?? undefined,
+          status: createData.status,
+          battery_level: createData.battery_level ?? undefined,
+          signal_strength: createData.signal_strength ?? undefined,
+          network_type: createData.network_type,
+          app_version: createData.metadata?.appVersion,
+          device_info: createData.metadata?.deviceInfo,
+          device_metadata: createData.metadata,
+          transmission_timestamp: createData.transmission_timestamp
+        };
 
     const transmission = await this.create(transmissionData);
 

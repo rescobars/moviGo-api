@@ -61,7 +61,7 @@ export const DriverTransmissionSchema = z.object({
   id: z.number().int().positive().optional(),
   uuid: z.string().uuid().optional(),
   driver_id: z.number().int().positive(),
-  route_id: z.number().int().positive(),
+  route_id: z.number().int().positive().nullable(), // Now nullable
   organization_id: z.number().int().positive(),
   vehicle_id: z.string().optional(),
   latitude: z.number().min(-90).max(90),
@@ -77,6 +77,7 @@ export const DriverTransmissionSchema = z.object({
   app_version: z.string().optional(),
   device_info: z.string().optional(),
   device_metadata: z.record(z.any()).optional(),
+  transmission_timestamp: z.date().optional(), // Timestamp from producer
   created_at: z.date().optional(),
   updated_at: z.date().optional()
 });
@@ -92,7 +93,8 @@ export const CreateDriverTransmissionSchema = z.object({
   battery_level: z.union([z.number().min(0).max(100), z.string()]).optional().transform(percentageTransform),
   signal_strength: z.union([z.number().min(0).max(100), z.string()]).optional().transform(percentageTransform),
   network_type: z.string().optional(),
-  metadata: DeviceMetadataSchema.optional()
+  metadata: DeviceMetadataSchema.optional(),
+  transmission_timestamp: z.date().optional() // Timestamp from producer
 });
 
 // Schema para datos de inserción en la base de datos
@@ -113,7 +115,8 @@ export const DriverTransmissionDataForInsertSchema = z.object({
   network_type: z.string().optional(),
   app_version: z.string().optional(),
   device_info: z.string().optional(),
-  device_metadata: z.record(z.any()).optional()
+  device_metadata: z.record(z.any()).optional(),
+  transmission_timestamp: z.date().optional() // Timestamp from producer
 });
 
 // Schema para actualizar una transmisión
