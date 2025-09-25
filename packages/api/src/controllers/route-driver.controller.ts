@@ -77,4 +77,33 @@ export class RouteDriverController {
       });
     }
   }
+
+  async getRoutesByUser(req: Request, res: Response): Promise<void> {
+    try {
+      const { userUuid } = req.params;
+      const { status } = req.query;
+      
+      if (!userUuid) {
+        res.status(400).json({ 
+          success: false,
+          error: 'User UUID is required' 
+        });
+        return;
+      }
+
+      const routes = await this.routeDriverService.getRoutesByUserUuid(userUuid, status as string);
+      
+      res.status(200).json({
+        success: true,
+        data: routes,
+        message: `Found ${routes.length} routes for user`
+      });
+    } catch (error) {
+      console.error('Error getting routes for user:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get routes for user'
+      });
+    }
+  }
 }

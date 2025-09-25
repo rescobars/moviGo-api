@@ -58,4 +58,9 @@ export class RouteDriverService {
       return routeDriver;
     });
   }
+
+  async getRoutesByUserUuid(userUuid: string, status?: string): Promise<any[]> {
+    const routes = await this.routeDriverRepository.getRoutesByUserUuid(userUuid, status);
+    return routes;
+  }
 }

@@ -112,7 +112,6 @@ export class WebSocketService {
    * Solo procesa transmisiones de drivers del tipo 'transmission.received'
    */
   private setupRabbitMQConsumer(): void {
-    console.log('🐰 Setting up RabbitMQ consumer...');
     rabbitMQService.consumeMessages(async (message: RabbitMQMessage) => {
       if (message.type === RABBITMQ_MESSAGE_TYPES.TRANSMISSION_RECEIVED && message.data) {
         const transmission: DriverTransmission = message.data;

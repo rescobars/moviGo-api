@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authMiddleware } from '../../../auth/src/auth';
 import { RouteDriverController } from '../controllers/route-driver.controller';
 import { RouteDriverRepository } from '../../../database/src/repositories/route-driver.repository';
 import { RouteRepository } from '../../../database/src/repositories/route.repository';
@@ -13,6 +14,9 @@ const routeDriverService = new RouteDriverService(routeDriverRepository, routeRe
 const routeDriverController = new RouteDriverController(routeDriverService);
 
 // Route driver assignment routes
-router.post('/assign/:routeUuid/:driverUuid', (req, res) => routeDriverController.assignDriverToRoute(req, res));
+router.post('/assign/:routeUuid/:driverUuid', authMiddleware, (req, res) => routeDriverController.assignDriverToRoute(req, res));
+
+// Get routes assigned to a user
+router.get('/user/:userUuid/routes', authMiddleware, (req, res) => routeDriverController.getRoutesByUser(req, res));
 
 export default router;

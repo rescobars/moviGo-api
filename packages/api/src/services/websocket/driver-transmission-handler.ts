@@ -20,16 +20,13 @@ export class DriverTransmissionHandler {
    * Procesa y distribuye una transmisión de driver
    */
   async handleDriverTransmission(transmission: DriverTransmission): Promise<void> {
-    console.log(`📡 Broadcasting transmission for driver ${transmission.driverId}`);
 
     try {
       // Guardar en la base de datos y obtener información completa
       const savedTransmission = await this.saveTransmissionToDatabase(transmission);
-      console.log(`💾 Transmission saved to database for driver ${transmission.driverId}`);
 
       // Guardar en Redis con la información completa
       await this.saveTransmissionToRedis(transmission, savedTransmission);
-      console.log(`🔴 Transmission saved to Redis for driver ${transmission.driverId}`);
     } catch (error) {
       console.error(`❌ Error saving transmission:`, error);
       // Continuar con el broadcast aunque falle el guardado

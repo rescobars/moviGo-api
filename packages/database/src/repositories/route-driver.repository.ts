@@ -50,6 +50,39 @@ export class RouteDriverRepository {
     return member ? member.id : null;
   }
 
+  async getRoutesByUserUuid(userUuid: string, status?: string): Promise<any[]> {
+    let query = db('route_driver')
+      .join('routes', 'route_driver.route_id', 'routes.id')
+      .join('organization_members', 'route_driver.driver_organization_member_id', 'organization_members.id')
+      .join('users', 'organization_members.user_id', 'users.id')
+      .join('organizations', 'routes.organization_id', 'organizations.id')
+      .where('users.uuid', userUuid);
+
+    // Aplicar filtro por status si se proporciona
+    if (status) {
+      query = query.where('routes.status', status);
+    }
+
+    const routes = await query
+      .select(
+        'routes.uuid as route_uuid',
+        'routes.route_name',
+        'routes.description',
+        'routes.status as route_status',
+        'routes.priority',
+        'routes.origin_name',
+        'routes.destination_name',
+        'routes.traffic_delay',
+        'routes.created_at as route_created_at',
+        'route_driver.start_time',
+        'route_driver.end_time',
+        'route_driver.driver_notes',
+        'organizations.name as organization_name'
+      );
+
+    return routes;
+  }
+
   private mapDbRouteDriverToRouteDriver(dbRouteDriver: any): RouteDriver {
     return {
       id: dbRouteDriver.id,
