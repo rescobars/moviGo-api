@@ -34,14 +34,15 @@ export const OrderSchema = z.object({
   user_id: z.number().int().positive().nullable(),
   order_number: z.string(),
   description: z.string().nullable(),
-  total_amount: z.number().positive(),
+  total_amount: z.number().positive().nullable(),
   status: OrderStatusSchema,
-  pickup_address: z.string(),
+  pickup_address: z.string().nullable(),
   delivery_address: z.string(),
   pickup_lat: z.number().nullable(),
   pickup_lng: z.number().nullable(),
   delivery_lat: z.number().nullable(),
   delivery_lng: z.number().nullable(),
+  details: z.any().nullable(),
   created_at: z.date(),
   updated_at: z.date()
 });
@@ -51,13 +52,14 @@ export const CreateOrderSchema = z.object({
   user_uuid: z.string().uuid().optional(),
   order_number: z.string().min(1).optional(),
   description: z.string().optional(),
-  total_amount: z.union([z.number().positive(), z.string()]).default(0).transform((val) => amountTransformWithDefault(val, 0)),
-  pickup_address: z.string().min(1),
+  total_amount: z.union([z.number().positive(), z.string()]).optional().transform((val) => amountTransform(val)),
+  pickup_address: z.string().optional(),
   delivery_address: z.string().min(1),
   pickup_lat: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
   pickup_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
   delivery_lat: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
-  delivery_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform)
+  delivery_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
+  details: z.any().optional()
 });
 
 export const UpdateOrderSchema = z.object({
@@ -69,7 +71,8 @@ export const UpdateOrderSchema = z.object({
   pickup_lat: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
   pickup_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
   delivery_lat: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
-  delivery_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform)
+  delivery_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
+  details: z.any().optional()
 });
 
 // Type for intermediate data structure used in controller
@@ -78,13 +81,14 @@ export const OrderDataForInsertSchema = z.object({
   user_id: z.number().int().positive().optional(),
   order_number: z.string().optional(),
   description: z.string().optional(),
-  total_amount: z.number().positive(),
-  pickup_address: z.string(),
+  total_amount: z.number().positive().optional(),
+  pickup_address: z.string().optional(),
   delivery_address: z.string(),
   pickup_lat: z.number().optional(),
   pickup_lng: z.number().optional(),
   delivery_lat: z.number().optional(),
-  delivery_lng: z.number().optional()
+  delivery_lng: z.number().optional(),
+  details: z.any().optional()
 });
 
 // Schema para validar filtros de pedidos
