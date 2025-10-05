@@ -41,7 +41,6 @@ export class WebSocketService {
 
     this.initializeComponents();
     this.setupEventHandlers();
-    console.log('🚀 WebSocket service initialized');
   }
 
   /**
@@ -69,7 +68,6 @@ export class WebSocketService {
     if (!this.io) return;
 
     this.io.on('connection', (socket: Socket) => {
-      console.log(`🔌 Client connected: ${socket.id}`);
 
       // Handle authentication
       socket.on(WEBSOCKET_EVENTS.AUTHENTICATE, (data: AuthenticationData) => {
@@ -100,9 +98,6 @@ export class WebSocketService {
   private handleDisconnect(socket: Socket): void {
     if (this.roomManager) {
       const user = this.roomManager.getUser(socket.id);
-      if (user && user.userId) {
-        console.log(`🔌 User ${user.userId} disconnected`);
-      }
       this.roomManager.unregisterUser(socket.id);
     }
   }

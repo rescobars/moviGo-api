@@ -45,10 +45,6 @@ export class RedisService {
       maxRetriesPerRequest: null,
     });
 
-    this.redis.on('connect', () => {
-      console.log('🔴 Connected to Redis');
-    });
-
     this.redis.on('error', (err: Error) => {
       console.error('❌ Redis connection error:', err);
     });
@@ -61,7 +57,6 @@ export class RedisService {
     try {
       const key = `${this.DRIVER_POSITION_PREFIX}${driverId}`;
       await this.redis.setex(key, 86400, JSON.stringify(position)); // Expira en 24 horas
-      console.log(`📍 Saved last position for driver ${driverId} in Redis`);
     } catch (error) {
       console.error('Error saving driver position to Redis:', error);
       throw error;

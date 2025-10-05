@@ -36,7 +36,6 @@ export class WebSocketAuthHandler {
     this.roomManager.registerUser(socket, user);
     this.sendAuthenticationSuccess(socket, { userId, organizationId });
     
-    console.log(`✅ User ${userId} authenticated`);
   }
 
   /**

@@ -32,7 +32,6 @@ export class WebSocketRouteHandler {
     this.roomManager.joinRoute(socket.id, routeId);
     this.messageBroadcaster.sendToSocket(socket.id, WEBSOCKET_EVENTS.JOINED_ROUTE, { routeId });
     
-    console.log(`🚪 User ${user.userId} joined route: ${routeId}`);
   }
 
   /**
@@ -50,7 +49,6 @@ export class WebSocketRouteHandler {
     this.roomManager.leaveRoute(socket.id, routeId);
     this.messageBroadcaster.sendToSocket(socket.id, WEBSOCKET_EVENTS.LEFT_ROUTE, { routeId });
     
-    console.log(`🚶 User ${user.userId} left route: ${routeId}`);
   }
 
   /**

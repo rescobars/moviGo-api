@@ -30,13 +30,8 @@ export class EmailService {
         ? process.env.DEV_EMAIL 
         : email;
       
-      console.log(`📧 Sending passwordless login token to ${targetEmail}${email !== targetEmail ? ` (original: ${email})` : ''}`);
-
       if (!process.env.RESEND_API_KEY) {
         console.log('⚠️ RESEND_API_KEY not configured, skipping email send');
-        console.log(`🔑 Token: ${token}`);
-        console.log(`🔢 Verification Code: ${verificationCode}`);
-        console.log(`🌐 Login URL: ${process.env.FRONTEND_URL || 'http://localhost:3001'}/verify?token=${token}`);
         return true;
       }
 
@@ -97,7 +92,6 @@ export class EmailService {
         return false;
       }
 
-      console.log('✅ Email sent successfully:', data);
       return true;
     } catch (error) {
       console.error('❌ Error sending email:', error);
@@ -118,14 +112,8 @@ export class EmailService {
         ? process.env.DEV_EMAIL 
         : email;
       
-      console.log(`📧 Sending organization invitation to ${targetEmail} for ${organizationName}${email !== targetEmail ? ` (original: ${email})` : ''}`);
-
       if (!process.env.RESEND_API_KEY) {
         console.log('⚠️ RESEND_API_KEY not configured, skipping email send');
-        console.log(`🏢 Organization: ${organizationName}`);
-        console.log(`👤 Inviter: ${inviterName}`);
-        console.log(`🎭 Roles: ${roles.join(', ')}`);
-        console.log(`🔗 Invitation URL: ${invitationUrl}`);
         return true;
       }
 
@@ -188,7 +176,6 @@ export class EmailService {
         return false;
       }
 
-      console.log('✅ Invitation email sent successfully:', data);
       return true;
     } catch (error) {
       console.error('❌ Error sending invitation email:', error);
@@ -207,12 +194,8 @@ export class EmailService {
         ? process.env.DEV_EMAIL 
         : email;
       
-      console.log(`📧 Sending email verification to ${targetEmail} for ${name}${email !== targetEmail ? ` (original: ${email})` : ''}`);
-
       if (!process.env.RESEND_API_KEY) {
         console.log('⚠️ RESEND_API_KEY not configured, skipping email send');
-        console.log(`👤 Name: ${name}`);
-        console.log(`🔢 Verification Code: ${verificationCode}`);
         return true;
       }
 
@@ -257,7 +240,6 @@ export class EmailService {
         return false;
       }
 
-      console.log('✅ Verification email sent successfully:', data);
       return true;
     } catch (error) {
       console.error('❌ Error sending verification email:', error);

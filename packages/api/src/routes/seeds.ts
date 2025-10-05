@@ -43,7 +43,6 @@ const verifyApiKey = (req: any, res: any, next: any) => {
 // POST /api/seeds/run - Run all seeds
 router.post('/run', verifyApiKey, async (req, res) => {
   try {
-    console.log('🌱 Starting seeds...');
     
     await db.seed.run();
     
@@ -72,7 +71,6 @@ router.post('/run-specific', verifyApiKey, async (req, res) => {
       });
     }
 
-    console.log(`🌱 Running specific seed: ${seedFile}`);
     
     await db.seed.run({ specific: seedFile });
     

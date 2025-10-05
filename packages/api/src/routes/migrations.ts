@@ -36,7 +36,6 @@ const verifyApiKey = (req: any, res: any, next: any) => {
 // POST /api/migrations/run - Run all pending migrations
 router.post('/run', verifyApiKey, async (req, res) => {
   try {
-    console.log('🔄 Starting migrations...');
     
     await db.migrate.latest();
     const status = await db.migrate.status();
@@ -76,7 +75,6 @@ router.get('/status', verifyApiKey, async (req, res) => {
 // POST /api/migrations/rollback - Rollback last migration
 router.post('/rollback', verifyApiKey, async (req, res) => {
   try {
-    console.log('🔄 Rolling back last migration...');
     
     await db.migrate.rollback();
     const status = await db.migrate.status();
@@ -98,7 +96,6 @@ router.post('/rollback', verifyApiKey, async (req, res) => {
 // POST /api/migrations/rollback-all - Rollback all migrations
 router.post('/rollback-all', verifyApiKey, async (req, res) => {
   try {
-    console.log('🔄 Rolling back all migrations...');
     
     await db.migrate.rollback(undefined, true); // true = rollback all
     const status = await db.migrate.status();

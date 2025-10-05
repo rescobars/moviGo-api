@@ -55,12 +55,6 @@ export class RouteDriverController {
         return;
       }
 
-      console.log('🔍 RouteDriver - Assigning driver:', {
-        routeUuid,
-        driverUuid,
-        organizationId,
-        routeDriverData
-      });
 
       const routeDriver = await this.routeDriverService.assignDriverToRoute(routeUuid, driverUuid, routeDriverData);
       

@@ -5,27 +5,6 @@ import { CreateOrderSchema, UpdateOrderSchema, OrderDataForInsert } from '../../
 export class OrdersController {
   static async getAll(req: Request, res: Response) {
     try {
-      // Log all query parameters (filters) received
-      console.log('🔍 Orders API - Filters received:', {
-        query: req.query,
-        status: req.query.status,
-        search: req.query.search,
-        created_after: req.query.created_after,
-        created_before: req.query.created_before,
-        updated_after: req.query.updated_after,
-        updated_before: req.query.updated_before,
-        min_amount: req.query.min_amount,
-        max_amount: req.query.max_amount,
-        pickup_lat: req.query.pickup_lat,
-        pickup_lon: req.query.pickup_lon,
-        delivery_lat: req.query.delivery_lat,
-        delivery_lon: req.query.delivery_lon,
-        radius: req.query.radius,
-        page: req.query.page,
-        limit: req.query.limit,
-        sort_by: req.query.sort_by,
-        sort_order: req.query.sort_order
-      });
 
       const { organization_uuid } = req.params;
       
@@ -74,24 +53,6 @@ export class OrdersController {
 
   static async getPending(req: Request, res: Response) {
     try {
-      // Log all query parameters (filters) received
-      console.log('🔍 Orders Pending API - Filters received:', {
-        query: req.query,
-        search: req.query.search,
-        created_after: req.query.created_after,
-        created_before: req.query.created_before,
-        min_amount: req.query.min_amount,
-        max_amount: req.query.max_amount,
-        pickup_lat: req.query.pickup_lat,
-        pickup_lon: req.query.pickup_lon,
-        delivery_lat: req.query.delivery_lat,
-        delivery_lon: req.query.delivery_lon,
-        radius: req.query.radius,
-        page: req.query.page,
-        limit: req.query.limit,
-        sort_by: req.query.sort_by,
-        sort_order: req.query.sort_order
-      });
 
       const { organization_uuid } = req.params;
       
