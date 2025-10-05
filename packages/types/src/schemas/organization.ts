@@ -25,6 +25,7 @@ export const OrganizationSchema = z.object({
   plan_type: PlanTypeEnum,
   subscription_expires_at: z.date().optional(),
   theme_config: ThemeConfigSchema.optional(),
+  theme_config_dark: ThemeConfigSchema.optional(),
   branding: BrandingSchema.optional(),
   created_at: z.date(),
   updated_at: z.date()
@@ -45,6 +46,7 @@ export const CreateOrganizationSchema = z.object({
   plan_type: PlanTypeEnum.optional().default('FREE'),
   subscription_expires_at: z.string().datetime().optional(),
   theme_config: ThemeConfigSchema.optional(),
+  theme_config_dark: ThemeConfigSchema.optional(),
   branding: BrandingSchema.optional()
 });
 
@@ -64,6 +66,7 @@ export const UpdateOrganizationSchema = z.object({
   plan_type: PlanTypeEnum.optional(),
   subscription_expires_at: z.string().datetime().optional(),
   theme_config: ThemeConfigSchema.optional(),
+  theme_config_dark: ThemeConfigSchema.optional(),
   branding: BrandingSchema.optional()
 });
 

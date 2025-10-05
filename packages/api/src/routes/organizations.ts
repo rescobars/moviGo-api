@@ -126,6 +126,18 @@ const router: Router = Router();
  *                       type: string
  *                       format: uri
  *                       nullable: true
+ *                     theme_config:
+ *                       type: object
+ *                       description: Light theme configuration
+ *                       nullable: true
+ *                     theme_config_dark:
+ *                       type: object
+ *                       description: Dark theme configuration
+ *                       nullable: true
+ *                     branding:
+ *                       type: object
+ *                       description: Organization branding configuration
+ *                       nullable: true
  *                     created_at:
  *                       type: string
  *                       format: date-time
