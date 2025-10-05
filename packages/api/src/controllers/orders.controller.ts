@@ -328,4 +328,78 @@ export class OrdersController {
       }
     }
   }
+
+  // Public endpoint for creating orders without authentication
+  static async createPublic(req: Request, res: Response) {
+    try {
+      const { organization_uuid } = req.params;
+      
+      if (!organization_uuid) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'organization_uuid is required in URL' 
+        });
+      }
+
+      // Create a modified schema that doesn't require organization_uuid in body
+      const PublicCreateOrderSchema = CreateOrderSchema.omit({ organization_uuid: true });
+      const validatedData = PublicCreateOrderSchema.parse(req.body);
+      
+      // Create intermediate data for database insertion
+      const orderData: Partial<OrderDataForInsert> = {
+        description: validatedData.description,
+        total_amount: validatedData.total_amount,
+        pickup_address: validatedData.pickup_address,
+        delivery_address: validatedData.delivery_address,
+        pickup_lat: validatedData.pickup_lat ?? undefined,
+        pickup_lng: validatedData.pickup_lng ?? undefined,
+        delivery_lat: validatedData.delivery_lat ?? undefined,
+        delivery_lng: validatedData.delivery_lng ?? undefined,
+        order_number: validatedData.order_number,
+        details: validatedData.details
+      };
+
+      // Convert organization_uuid from URL to organization_id
+      const organizationId = await OrderRepository.getOrganizationIdFromUuid(organization_uuid);
+      if (!organizationId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid organization UUID'
+        });
+      }
+      orderData.organization_id = organizationId;
+
+      // Convert user_uuid to user_id if provided
+      if (validatedData.user_uuid) {
+        const userId = await OrderRepository.getUserIdFromUuid(validatedData.user_uuid);
+        if (!userId) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid user UUID'
+          });
+        }
+        orderData.user_id = userId;
+      }
+
+      // Generate order number if not provided
+      if (!orderData.order_number) {
+        orderData.order_number = await OrderRepository.generateOrderNumber(orderData.organization_id!);
+      }
+
+      const order = await OrderRepository.create(orderData as OrderDataForInsert);
+      res.status(201).json({ success: true, data: order });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('validation')) {
+        res.status(400).json({ 
+          success: false, 
+          error: error.message 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+      }
+    }
+  }
 }

@@ -19,6 +19,9 @@ router.post('/', authMiddleware, OrdersController.create);
 // Crear múltiples pedidos
 router.post('/bulk', authMiddleware, OrdersController.bulkCreate);
 
+// Crear un pedido público (sin autenticación) - organization_uuid en URL
+router.post('/public/:organization_uuid', OrdersController.createPublic);
+
 // Actualizar un pedido
 router.put('/:uuid', authMiddleware, OrdersController.update);
 
