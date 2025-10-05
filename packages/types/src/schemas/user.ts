@@ -20,7 +20,7 @@ export const UserSchema = z.object({
 export const CreateUserSchema = z.object({
   email: z.string().email('Invalid email format'),
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
-  password_hash: z.string().nullable().optional(),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
   status: UserStatusEnum.optional().default('ACTIVE')
 });
 

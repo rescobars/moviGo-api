@@ -49,7 +49,7 @@ export class RedisService {
       console.log('🔴 Connected to Redis');
     });
 
-    this.redis.on('error', (err) => {
+    this.redis.on('error', (err: Error) => {
       console.error('❌ Redis connection error:', err);
     });
   }
@@ -96,8 +96,8 @@ export class RedisService {
       const data = await this.redis.mget(...keys);
       
       return data
-        .filter(item => item !== null)
-        .map(item => JSON.parse(item!) as DriverLastPosition);
+        .filter((item: string | null) => item !== null)
+        .map((item: string) => JSON.parse(item) as DriverLastPosition);
     } catch (error) {
       console.error('Error getting multiple driver positions from Redis:', error);
       return [];
@@ -119,8 +119,8 @@ export class RedisService {
       const data = await this.redis.mget(...keys);
       
       return data
-        .filter(item => item !== null)
-        .map(item => JSON.parse(item!) as DriverLastPosition)
+        .filter((item: string | null) => item !== null)
+        .map((item: string) => JSON.parse(item) as DriverLastPosition)
         .filter(position => position.organizationId === organizationId);
     } catch (error) {
       console.error('Error getting organization driver positions from Redis:', error);
@@ -143,8 +143,8 @@ export class RedisService {
       const data = await this.redis.mget(...keys);
       
       return data
-        .filter(item => item !== null)
-        .map(item => JSON.parse(item!) as DriverLastPosition)
+        .filter((item: string | null) => item !== null)
+        .map((item: string) => JSON.parse(item) as DriverLastPosition)
         .filter(position => routeIds.includes(position.routeId || ''));
     } catch (error) {
       console.error('Error getting multiple routes driver positions from Redis:', error);

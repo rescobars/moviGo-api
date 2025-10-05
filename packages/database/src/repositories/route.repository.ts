@@ -126,7 +126,7 @@ export class RouteRepository {
 
       // Search filter (search in route_name, description, origin_name, destination_name)
       if (filters.search) {
-        const searchCondition = function() {
+        const searchCondition = function(this: any) {
           this.where('route_name', 'ilike', `%${filters.search}%`)
             .orWhere('description', 'ilike', `%${filters.search}%`)
             .orWhere('origin_name', 'ilike', `%${filters.search}%`)
@@ -170,7 +170,7 @@ export class RouteRepository {
         const lon = parseFloat(filters.origin_lon);
         const radius = parseFloat(filters.radius);
         
-        const locationCondition = function() {
+        const locationCondition = function(this: any) {
           this.whereRaw(`
             (6371 * acos(cos(radians(?)) * cos(radians(origin_lat)) * 
             cos(radians(origin_lon) - radians(?)) + sin(radians(?)) * 
@@ -208,7 +208,7 @@ export class RouteRepository {
       countQuery.count('* as total').first()
     ]);
 
-    const total = parseInt(totalResult.total);
+    const total = parseInt(String(totalResult?.total || 0));
     const page = filters?.page ? parseInt(filters.page) : 1;
     const limit = filters?.limit ? parseInt(filters.limit) : total;
     const totalPages = Math.ceil(total / limit);

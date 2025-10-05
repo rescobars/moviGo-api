@@ -69,8 +69,8 @@ importers:
         specifier: ^7.1.0
         version: 7.2.0
       ioredis:
-        specifier: ^5.7.0
-        version: 5.7.0
+        specifier: ^5.8.0
+        version: 5.8.0
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
@@ -1137,8 +1137,8 @@ packages:
     resolution: {integrity: sha512-Ju0Bz/cEia55xDwUWEa8+olFpCiQoypjnQySseKtmjNrnps3P+xfpUmGr90T7yjlVJmOtybRvPXhKMbHr+fWnw==}
     engines: {node: '>= 0.10'}
 
-  ioredis@5.7.0:
-    resolution: {integrity: sha512-NUcA93i1lukyXU+riqEyPtSEkyFq8tX90uL659J+qpCZ3rEdViB/APC58oAhIh3+bJln2hzdlZbBZsGNrlsR8g==}
+  ioredis@5.8.0:
+    resolution: {integrity: sha512-AUXbKn9gvo9hHKvk6LbZJQSKn/qIfkWXrnsyL9Yrf+oeXmla9Nmf6XEumOddyhM8neynpK5oAV6r9r99KBuwzA==}
     engines: {node: '>=12.22.0'}
 
   ipaddr.js@1.9.1:
@@ -2603,7 +2603,7 @@ snapshots:
 
   '@types/ioredis@5.0.0':
     dependencies:
-      ioredis: 5.7.0
+      ioredis: 5.8.0
     transitivePeerDependencies:
       - supports-color
 
@@ -2998,7 +2998,7 @@ snapshots:
 
   interpret@2.2.0: {}
 
-  ioredis@5.7.0:
+  ioredis@5.8.0:
     dependencies:
       '@ioredis/commands': 1.4.0
       cluster-key-slot: 1.1.2

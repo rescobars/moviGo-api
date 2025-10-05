@@ -184,6 +184,13 @@ export class UserController {
       }
 
       // Check password
+      if (!user.password_hash) {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid credentials'
+        });
+      }
+      
       const isValidPassword = await bcrypt.compare(validatedData.password, user.password_hash);
       
       if (!isValidPassword) {

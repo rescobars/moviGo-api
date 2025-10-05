@@ -38,7 +38,7 @@ export class OrderRepository {
 
       // Search filter (search in order_number, description, pickup_address, delivery_address)
       if (filters.search) {
-        const searchCondition = function() {
+        const searchCondition = function(this: any) {
           this.where('order_number', 'ilike', `%${filters.search}%`)
             .orWhere('description', 'ilike', `%${filters.search}%`)
             .orWhere('pickup_address', 'ilike', `%${filters.search}%`)
@@ -82,7 +82,7 @@ export class OrderRepository {
         const lon = parseFloat(filters.pickup_lon);
         const radius = parseFloat(filters.radius);
         
-        const locationCondition = function() {
+        const locationCondition = function(this: any) {
           this.whereRaw(`
             (6371 * acos(cos(radians(?)) * cos(radians(pickup_lat)) * 
             cos(radians(pickup_lon) - radians(?)) + sin(radians(?)) * 
@@ -120,7 +120,7 @@ export class OrderRepository {
       countQuery.count('* as total').first()
     ]);
 
-    const total = parseInt(totalResult.total);
+    const total = parseInt(String(totalResult?.total || 0));
     const page = filters?.page ? parseInt(filters.page) : 1;
     const limit = filters?.limit ? parseInt(filters.limit) : total;
     const totalPages = Math.ceil(total / limit);
