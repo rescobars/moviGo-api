@@ -35,7 +35,7 @@ export const CreateRouteRequestSchema = z.object({
   description: z.string().optional(),
   origin: WaypointSchema,
   destination: WaypointSchema,
-  waypoints: z.array(WaypointSchema).min(1),
+  waypoints: z.any(), // JSONB libre - acepta tu estructura completa con stops
   route: z.array(RoutePointSchema).min(1),
   ordered_waypoints: z.array(OrderedWaypointSchema).min(1),
   traffic_condition: TrafficConditionSchema,
@@ -57,7 +57,7 @@ export const RouteSchema = z.object({
   destination_lat: z.number().min(-90).max(90),
   destination_lon: z.number().min(-180).max(180),
   destination_name: z.string().min(1),
-  waypoints: z.array(WaypointSchema),
+  waypoints: z.any(), // JSONB libre - acepta cualquier estructura
   route_points: z.array(RoutePointSchema),
   ordered_waypoints: z.array(OrderedWaypointSchema),
   traffic_condition: TrafficConditionSchema,
@@ -80,7 +80,7 @@ export const RouteOrderSchema = z.object({
 export const UpdateRouteRequestSchema = z.object({
   route_name: z.string().min(1).optional(),
   description: z.string().optional(),
-  waypoints: z.array(WaypointSchema).optional(),
+  waypoints: z.any().optional(), // JSONB libre - acepta cualquier estructura
   route: z.array(RoutePointSchema).optional(),
   ordered_waypoints: z.array(OrderedWaypointSchema).optional(),
   traffic_condition: TrafficConditionSchema.optional(),
