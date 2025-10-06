@@ -59,4 +59,8 @@ export class RouteService {
   async getAllRoutesByOrganization(organizationId: number, filters?: any): Promise<{ routes: any[], pagination: any }> {
     return await this.routeRepository.findAllWithOrdersByOrganization(organizationId, filters);
   }
+
+  async getRouteByUuid(uuid: string): Promise<any | null> {
+    return await this.routeRepository.findByUuidWithOrders(uuid);
+  }
 }

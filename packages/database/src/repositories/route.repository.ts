@@ -65,6 +65,70 @@ export class RouteRepository {
     return routes.map(route => this.mapDbRouteToRoute(route));
   }
 
+  async findByUuid(uuid: string): Promise<Route | null> {
+    const route = await this.knex('routes')
+      .where('uuid', uuid)
+      .first();
+
+    return route ? this.mapDbRouteToRoute(route) : null;
+  }
+
+  async findByUuidWithOrders(uuid: string): Promise<any | null> {
+    const route = await this.knex('routes')
+      .where('uuid', uuid)
+      .first();
+
+    if (!route) {
+      return null;
+    }
+
+    const routeData = this.mapDbRouteToRoute(route);
+    
+    // Obtener los pedidos asociados a esta ruta con toda su información
+    const orders = await this.knex('route_orders')
+      .join('orders', 'route_orders.order_id', 'orders.id')
+      .where('route_orders.route_id', route.id)
+      .select(
+        'orders.uuid as order_uuid',
+        'orders.order_number',
+        'orders.description',
+        'orders.status as order_status',
+        'orders.pickup_address',
+        'orders.delivery_address',
+        'orders.pickup_lat',
+        'orders.pickup_lng',
+        'orders.delivery_lat',
+        'orders.delivery_lng',
+        'orders.total_amount',
+        'orders.details',
+        'orders.created_at as order_created_at',
+        'orders.updated_at as order_updated_at',
+        'route_orders.sequence_order'
+      )
+      .orderBy('route_orders.sequence_order');
+
+    return {
+      ...routeData,
+      orders: orders.map(order => ({
+        order_uuid: order.order_uuid,
+        order_number: order.order_number,
+        description: order.description,
+        status: order.order_status,
+        pickup_address: order.pickup_address,
+        delivery_address: order.delivery_address,
+        pickup_lat: order.pickup_lat,
+        pickup_lng: order.pickup_lng,
+        delivery_lat: order.delivery_lat,
+        delivery_lng: order.delivery_lng,
+        total_amount: order.total_amount,
+        details: order.details,
+        created_at: order.order_created_at,
+        updated_at: order.order_updated_at,
+        sequence_order: order.sequence_order
+      }))
+    };
+  }
+
   async updateStatus(routeId: number, status: string): Promise<Route | null> {
     const [updatedRoute] = await this.knex('routes')
       .where('id', routeId)

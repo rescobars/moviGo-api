@@ -29,4 +29,12 @@ router.get('/', async (req, res) => {
   await routesController.getAllRoutes(req, res);
 });
 
+router.get('/:uuid', async (req, res) => {
+  // Inject knex instance into repositories
+  (routeRepository as any).knex = (req as any).knex;
+  (routeOrderRepository as any).knex = (req as any).knex;
+  
+  await routesController.getRouteByUuid(req, res);
+});
+
 export default router;

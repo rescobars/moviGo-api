@@ -99,4 +99,40 @@ export class RoutesController {
       });
     }
   }
+
+  async getRouteByUuid(req: Request, res: Response): Promise<void> {
+    try {
+      const { uuid } = req.params;
+      
+      if (!uuid) {
+        res.status(400).json({ 
+          success: false,
+          error: 'Route UUID is required' 
+        });
+        return;
+      }
+
+      const route = await this.routeService.getRouteByUuid(uuid);
+      
+      if (!route) {
+        res.status(404).json({ 
+          success: false,
+          error: 'Route not found' 
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        data: route,
+        message: 'Route retrieved successfully'
+      });
+    } catch (error) {
+      console.error('Error getting route:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get route'
+      });
+    }
+  }
 }
