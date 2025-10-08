@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { OrderRepository } from '../../../database/src/repositories/order.repository';
-import { CreateOrderSchema, UpdateOrderSchema, OrderDataForInsert } from '../../../types/src/schemas/order';
+import { CreateOrderSchema, CreatePublicOrderSchema, UpdateOrderSchema, OrderDataForInsert } from '../../../types/src/schemas/order';
 
 export class OrdersController {
   static async getAll(req: Request, res: Response) {
@@ -341,14 +341,12 @@ export class OrdersController {
         });
       }
 
-      // Create a modified schema that doesn't require organization_uuid in body
-      const PublicCreateOrderSchema = CreateOrderSchema.omit({ organization_uuid: true });
-      const validatedData = PublicCreateOrderSchema.parse(req.body);
+      // Use the public schema that doesn't include total_amount
+      const validatedData = CreatePublicOrderSchema.parse(req.body);
       
-      // Create intermediate data for database insertion
+      // Create intermediate data for database insertion (without total_amount)
       const orderData: Partial<OrderDataForInsert> = {
         description: validatedData.description,
-        total_amount: validatedData.total_amount,
         pickup_address: validatedData.pickup_address,
         delivery_address: validatedData.delivery_address,
         pickup_lat: validatedData.pickup_lat ?? undefined,

@@ -46,6 +46,20 @@ export const CreateOrderSchema = z.object({
   details: z.any().optional()
 });
 
+// Schema específico para pedidos públicos (sin total_amount)
+export const CreatePublicOrderSchema = z.object({
+  user_uuid: z.string().uuid().optional(),
+  order_number: z.string().min(1).optional(),
+  description: z.string().optional(),
+  pickup_address: z.string().optional(),
+  delivery_address: z.string().min(1),
+  pickup_lat: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
+  pickup_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
+  delivery_lat: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
+  delivery_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
+  details: z.any().optional()
+});
+
 export const UpdateOrderSchema = z.object({
   description: z.string().optional(),
   total_amount: z.number().positive().nullable().optional(),
@@ -159,6 +173,7 @@ export const OrderFiltersSchema = z.object({
 
 export type Order = z.infer<typeof OrderSchema>;
 export type CreateOrder = z.infer<typeof CreateOrderSchema>;
+export type CreatePublicOrder = z.infer<typeof CreatePublicOrderSchema>;
 export type UpdateOrder = z.infer<typeof UpdateOrderSchema>;
 export type OrderDataForInsert = z.infer<typeof OrderDataForInsertSchema>;
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;
