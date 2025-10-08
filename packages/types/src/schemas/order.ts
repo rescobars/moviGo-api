@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const OrderStatusSchema = z.enum(['PENDING', 'ASSIGNED', 'IN_ROUTE', 'COMPLETED', 'CANCELLED']);
+export const OrderStatusSchema = z.enum(['REQUESTED', 'PENDING', 'ASSIGNED', 'IN_ROUTE', 'COMPLETED', 'CANCELLED']);
 
 // Helper functions to reduce code duplication
 const coordinateTransform = (val: string | number | undefined) => {
@@ -92,8 +92,8 @@ export const OrderDataForInsertSchema = z.object({
 // Schema para validar filtros de pedidos
 export const OrderFiltersSchema = z.object({
   status: z.union([
-    z.enum(['PENDING', 'ASSIGNED', 'IN_ROUTE', 'COMPLETED', 'CANCELLED']),
-    z.array(z.enum(['PENDING', 'ASSIGNED', 'IN_ROUTE', 'COMPLETED', 'CANCELLED'])),
+    z.enum(['REQUESTED', 'PENDING', 'ASSIGNED', 'IN_ROUTE', 'COMPLETED', 'CANCELLED']),
+    z.array(z.enum(['REQUESTED', 'PENDING', 'ASSIGNED', 'IN_ROUTE', 'COMPLETED', 'CANCELLED'])),
     z.literal('all') // Permitir 'all' pero lo convertiremos a undefined
   ]).optional().transform((val) => {
     if (val === 'all') return undefined;
