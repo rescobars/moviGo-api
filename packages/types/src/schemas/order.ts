@@ -27,6 +27,8 @@ export const OrderSchema = z.object({
   delivery_lat: z.number().nullable(),
   delivery_lng: z.number().nullable(),
   details: z.any().nullable(),
+  route_points: z.any().nullable(),
+  route_details: z.any().nullable(),
   created_at: z.date(),
   updated_at: z.date()
 });
@@ -43,7 +45,9 @@ export const CreateOrderSchema = z.object({
   pickup_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
   delivery_lat: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
   delivery_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
-  details: z.any().optional()
+  details: z.any().optional(),
+  route_points: z.any().optional(),
+  route_details: z.any().optional()
 });
 
 // Schema específico para pedidos públicos (sin total_amount)
@@ -57,7 +61,9 @@ export const CreatePublicOrderSchema = z.object({
   pickup_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
   delivery_lat: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
   delivery_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
-  details: z.any().optional()
+  details: z.any().optional(),
+  route_points: z.any().optional(),
+  route_details: z.any().optional()
 });
 
 export const UpdateOrderSchema = z.object({
@@ -70,7 +76,9 @@ export const UpdateOrderSchema = z.object({
   pickup_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
   delivery_lat: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
   delivery_lng: z.union([z.number(), z.string()]).optional().transform(coordinateTransform),
-  details: z.any().optional()
+  details: z.any().optional(),
+  route_points: z.any().optional(),
+  route_details: z.any().optional()
 });
 
 // Type for intermediate data structure used in controller
@@ -86,7 +94,9 @@ export const OrderDataForInsertSchema = z.object({
   pickup_lng: z.number().optional(),
   delivery_lat: z.number().optional(),
   delivery_lng: z.number().optional(),
-  details: z.any().optional()
+  details: z.any().optional(),
+  route_points: z.any().optional(),
+  route_details: z.any().optional()
 });
 
 // Schema para validar filtros de pedidos
